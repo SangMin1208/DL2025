@@ -2,7 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
-      "/posts/1-2.회귀분석1(회귀모형,손실함수).html"
+      "/posts/1-1.torch(파이토치기본).html",
+      "/posts/1-2.회귀(회귀모형,손실함수,파이토치를이용한추정).html"
     ]
   }
 ]
