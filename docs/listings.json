@@ -1,6 +1,8 @@
 [
   {
     "listing": "/index.html",
-    "items": []
+    "items": [
+      "/posts/1-2.회귀분석1(회귀모형,손실함수).html"
+    ]
   }
 ]
