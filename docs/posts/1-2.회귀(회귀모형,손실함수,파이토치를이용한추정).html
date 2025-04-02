@@ -332,7 +332,8 @@ window.Quarto = {
 <section id="c.-회귀분석" class="level4">
 <h4 class="anchored" data-anchor-id="c.-회귀분석">C. 회귀분석</h4>
 <p><code>-</code> 관측한 자료 <span class="math inline">\((x_i,y_i)\)</span> 이 선형성을 가지고 있을 때 이를 파악하여 새로운 <span class="math inline">\(x\)</span>가 주어졌을 때 <span class="math inline">\(\hat{y}\)</span>(예측값)을 구할 수 있는 <strong>적당한</strong> 추세선을 찾는 것</p>
-<p><code>-</code> 좀 더 정확하게 말하면 <span class="math inline">\((x_1,y_1) \dots (x_n,y_n)\)</span> 으로 <span class="math inline">\(\begin{bmatrix} \hat{w}_0 \\ \hat{w}_1 \end{bmatrix}\)</span> 를 최대한 <span class="math inline">\(\begin{bmatrix} 2.5 \\ 4 \end{bmatrix}\)</span>와 비슷하게 찾는 것.</p>
+<p><code>-</code> 좀 더 정확하게 말하면 <span class="math inline">\((x_1,y_1) \dots (x_n,y_n)\)</span> 으로</p>
+<p><span class="math inline">\(\begin{bmatrix} \hat{w}_0 \\ \hat{w}_1 \end{bmatrix}\)</span> 를 최대한 <span class="math inline">\(\begin{bmatrix} 2.5 \\ 4 \end{bmatrix}\)</span>와 비슷하게 찾는 것.</p>
 <ul>
 <li><p>given data : <span class="math inline">\(\big\{(x_i,y_i) \big\}_{i=1}^{n}\)</span></p></li>
 <li><p>parameter: <span class="math inline">\({\bf W}=\begin{bmatrix} w_0 \\ w_1 \end{bmatrix}\)</span></p></li>
@@ -483,7 +484,12 @@ loss: tensor([[59.3805]])</code></pre>
 <pre><code>tensor(8587.6875)</code></pre>
 </div>
 </div>
-<p><code>-</code> 현재 loss(=8587.6875)를 줄여야함 * 최종적으로loss를 최소로 하는 <span class="math inline">\((\hat{w}_0,\hat{w}_1)\)</span>을 구해야함 * 함수의 최대값, 최소값을 컴퓨터로 찾는것 : ‘최적화’ * 최적화의 방법 : <strong>경사하강법</strong></p>
+<p><code>-</code> 현재 loss(=8587.6875)를 줄여야함</p>
+<ul>
+<li>최종적으로loss를 최소로 하는 <span class="math inline">\((\hat{w}_0,\hat{w}_1)\)</span>을 구해야함</li>
+<li>함수의 최대값, 최소값을 컴퓨터로 찾는것 : ‘최적화’</li>
+<li>최적화의 방법 : <strong>경사하강법</strong></li>
+</ul>
 <p><code>-</code> 경사하강법 (1차원)</p>
 <ol type="1">
 <li>임의의 점을 찍음</li>
@@ -494,8 +500,24 @@ loss: tensor([[59.3805]])</code></pre>
 <li>기울기의 절대값 크기와 비례하여 보폭(=움직이는 정도)을 조절 <span class="math inline">\(\to\)</span> <span class="math inline">\(\alpha\)</span>를 도입</li>
 <li>최종수식 :<span class="math inline">\(\hat{w} \leftarrow \hat{w} - \alpha \times \frac{\partial}{\partial w}loss(w)\)</span></li>
 </ul>
-<p><code>-</code> 경사하강법 (2차원) <img src="https://guebin.github.io/DL2024/posts/02wk-1_files/figure-html/cell-37-output-1.png" class="img-fluid"> 1. 임의의 점을 찍음 2. 그 점에서 순간기울기를 구함 (접평면) &lt;– 편미분 3. 순간기울기(=미분계수)의 부호와 반대방향으로 <strong><em>각각</em></strong> 점을 이동 * 기울기의 절대값 크기와 비례하여 보폭(=움직이는 정도)을 <strong><em>각각</em></strong> 조절 <span class="math inline">\(\to\)</span> <span class="math inline">\(\alpha\)</span>를 도입</p>
-<p><code>-</code> 경사하강법 : loss를 줄이도록 <span class="math inline">\(\hat{W}\)</span>를 개선하는 방법 * 수정값 = 원래값 - <span class="math inline">\(\alpha\)</span> <span class="math inline">\(\times\)</span> 기울어진 크기(=미분계수) * 미분계수와 반대방향으로 이동해야하기 때문에 마이너스 부호 사용 * <span class="math inline">\(\alpha\)</span>는 전체적인 보폭 크기 결정, 클수록 한번에 update에서 움직임이 큼</p>
+<p><code>-</code> 경사하강법 (2차원)</p>
+<p><img src="https://guebin.github.io/DL2024/posts/02wk-1_files/figure-html/cell-37-output-1.png" class="img-fluid"></p>
+<ol type="1">
+<li>임의의 점을 찍음</li>
+<li>그 점에서 순간기울기를 구함 (접평면) &lt;– 편미분</li>
+<li>순간기울기(=미분계수)의 부호와 반대방향으로 <strong><em>각각</em></strong> 점을 이동</li>
+</ol>
+<ul>
+<li>기울기의 절대값 크기와 비례하여 보폭(=움직이는 정도)을 <strong><em>각각</em></strong> 조절 <span class="math inline">\(\to\)</span> <span class="math inline">\(\alpha\)</span>를 도입</li>
+</ul>
+<p><code>-</code> 경사하강법 : loss를 줄이도록 <span class="math inline">\(\hat{W}\)</span>를 개선하는 방법</p>
+<ul>
+<li>수정값 = 원래값 - <span class="math inline">\(\alpha\)</span> <span class="math inline">\(\times\)</span> 기울어진 크기(=미분계수)
+<ul>
+<li>미분계수와 반대방향으로 이동해야하기 때문에 마이너스 부호 사용</li>
+</ul></li>
+<li><span class="math inline">\(\alpha\)</span>는 전체적인 보폭 크기 결정, 클수록 한번에 update에서 움직임이 큼</li>
+</ul>
 
 
 </section>
