@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="이상민">
-<meta name="dcterms.date" content="2025-04-02">
+<meta name="dcterms.date" content="2025-03-26">
 
 <title>1-2, 2-1. 회귀(회귀모형, 손실함수, 파이토치를 이용한 추정) – DL2025</title>
 <style>
@@ -195,7 +195,7 @@ window.Quarto = {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">April 2, 2025</p>
+        <p class="date">March 26, 2025</p>
       </div>
     </div>
     
@@ -518,6 +518,220 @@ loss: tensor([[59.3805]])</code></pre>
 </ul></li>
 <li><span class="math inline">\(\alpha\)</span>는 전체적인 보폭 크기 결정, 클수록 한번에 update에서 움직임이 큼</li>
 </ul>
+<p><code>-</code> 우리가 구하고 싶은 것</p>
+<ul>
+<li><span class="math inline">\(\hat{W}^{LSE}=\underset{\hat{W}}argmin ~ loss(\hat{W})\)</span></li>
+</ul>
+<p><code>-</code> 요약</p>
+<ul>
+<li>x,X,W,y // X = [1 x], W = [w0, w1] (회귀분석에서는 W=β)</li>
+<li>회귀모형: y=X@W+ϵ = X@β+ϵ</li>
+<li>true: E(y)=X@W</li>
+<li>observed: (x,y)</li>
+<li>estimated W = What = [w0hat, w1hat]’ &lt;– 아무값이나넣음</li>
+<li>estimated y = yhat = X@What = X@β̂</li>
+<li>loss = yhat이랑 y랑 얼마나 비슷한지 = sum((y-yhat)^2)</li>
+<li>(x,y) 보고 최적의 선분을 그리는것 = loss를 가장 작게 만드는 What = [w0hat, w1hat] 를 찾는것</li>
+<li>전략
+<ul>
+<li><ol type="1">
+<li>아무 What나 찍는다</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>그거보다 더 나은 What을 찾는다.</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>1-2를 반복한다.</li>
+</ol></li>
+</ul></li>
+<li>전략2가 어려운데, 이를 수행하는 방법이 경사하강법</li>
+<li>경사하강법 알고리즘: 더나은What = 원래What - <span class="math inline">\(\alpha\)</span>*미분값</li>
+<li>수식 <span class="math display">\[\hat{\bf W} \leftarrow \hat{\bf W} - \alpha \times \left.\frac{\partial}{\partial {\bf W}}loss({\bf W})\right|_{{\bf W}=\hat{\bf W}}\]</span></li>
+</ul>
+<p><code>-</code> 미분값 계산법 1) <span class="math inline">\(\to\)</span> 정확하지도 않고 번거로운 방법..</p>
+<div id="65cc342f-938f-41f5-907b-8b41b7bb1b18" class="cell" data-execution_count="59">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> l(w0,w1):</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    yhat <span class="op">=</span> w0 <span class="op">+</span> w1<span class="op">*</span>x</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> torch.<span class="bu">sum</span>((y<span class="op">-</span>yhat)<span class="op">**</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="40df2765-d51a-4799-ab76-144785e43359" class="cell" data-execution_count="60">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>l(<span class="op">-</span><span class="dv">5</span>,<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="60">
+<pre><code>tensor(8587.6875)</code></pre>
+</div>
+</div>
+<div id="79cbb087-bdbd-4a3b-b3af-7038c315784c" class="cell" data-execution_count="61">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>h<span class="op">=</span><span class="fl">0.001</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>((l(<span class="op">-</span><span class="dv">5</span><span class="op">+</span>h,<span class="dv">10</span>) <span class="op">-</span> l(<span class="op">-</span><span class="dv">5</span>,<span class="dv">10</span>))<span class="op">/</span>h)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>((l(<span class="op">-</span><span class="dv">5</span>,<span class="dv">10</span><span class="op">+</span>h) <span class="op">-</span> l(<span class="op">-</span><span class="dv">5</span>,<span class="dv">10</span>))<span class="op">/</span>h)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tensor(-1341.7968)
+tensor(1190.4297)</code></pre>
+</div>
+</div>
+<div id="026a37e0-96d2-41aa-85df-519b80de4dee" class="cell" data-execution_count="63">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>new <span class="op">=</span> What <span class="op">-</span> <span class="fl">0.001</span> <span class="op">*</span> torch.tensor([[<span class="op">-</span><span class="fl">1341.7968</span>],[<span class="fl">1190.4297</span>]])</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>new</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="63">
+<pre><code>tensor([[-3.6582],
+        [ 8.8096]])</code></pre>
+</div>
+</div>
+<div id="b217504e-e75d-4095-bbda-b5c6bb97f381" class="cell" data-execution_count="65">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>plt.plot(x,y,<span class="st">'o'</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>plt.plot(x,X<span class="op">@</span>What,<span class="st">'-'</span>) <span class="co"># 원래What: 주황색</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>plt.plot(x,X<span class="op">@</span>new,<span class="st">'-'</span>) <span class="co"># 더나은What: 초록색</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="1-2.회귀(회귀모형,손실함수,파이토치를이용한추정)_files/figure-html/cell-26-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><code>-</code> 수식</p>
+<ul>
+<li><p>편미분</p></li>
+<li><p><span class="math inline">\(\frac{\partial}{\partial w_0}loss(w_0,w_1) \approx \frac{loss(w_0+h,w_1)-loss(w_0,w_1)}{h}\)</span></p></li>
+<li><p><span class="math inline">\(\frac{\partial}{\partial w_1}loss(w_0,w_1) \approx \frac{loss(w_0,w_1+h)-loss(w_0,w_1)}{h}\)</span></p></li>
+<li><p>편미분 값을 이용</p></li>
+<li><p><span class="math display">\[\frac{\partial}{\partial {\bf W}}loss({\bf W}):= \begin{bmatrix} \frac{\partial}{\partial w_0} \\ \frac{\partial}{\partial w_1}\end{bmatrix}loss({\bf W}) =  \begin{bmatrix} \frac{\partial}{\partial w_0}loss({\bf W}) \\ \frac{\partial}{\partial w_1}loss({\bf W})\end{bmatrix}  =  \begin{bmatrix} \frac{\partial}{\partial w_0}loss(w_0,w_1) \\ \frac{\partial}{\partial w_1}loss(w_0,w_1)\end{bmatrix}\]</span></p></li>
+</ul>
+<p><code>-</code> 미분값 계산법 2) <span class="math inline">\(\to\)</span> 이것도 어려움…</p>
+<ul>
+<li><code>loss</code> = <code>(y - XWhat)'(y -  XWhat)</code></li>
+<li>= <code>(y'- What'X')(y - XWhat)</code></li>
+<li>= <code>y'y - y'XWhat - What'X'y + What'X'XWhat</code></li>
+<li>loss를 What으로 미분</li>
+<li><code>loss'</code> = <code>-X'y - X'y + 2X'XWhat</code> <span class="math display">\[\frac{\partial}{\partial {\bf W}}loss({\bf W})= -2{\bf X}^\top {\bf y} + 2{\bf X}^\top {\bf X}{\bf W}\]</span></li>
+</ul>
+<div id="a505a4a1-fbed-4206-b4b7-d1edeec1054e" class="cell" data-execution_count="66">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="op">-</span><span class="dv">2</span><span class="op">*</span>X.T<span class="op">@</span>y <span class="op">+</span> <span class="dv">2</span><span class="op">*</span>X.T<span class="op">@</span>X<span class="op">@</span>What</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="66">
+<pre><code>tensor([[-1342.2524],
+        [ 1188.9302]])</code></pre>
+</div>
+</div>
+<p><code>-</code> 미분값 계산법 3) (★)</p>
+<div id="f7ef085b-731d-43e3-9442-dc0542e09b2f" class="cell" data-execution_count="72">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>What <span class="op">=</span> torch.tensor([[<span class="op">-</span><span class="fl">5.0</span>],[<span class="fl">10.0</span>]],requires_grad<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>What</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="72">
+<pre><code>tensor([[-5.],
+        [10.]], requires_grad=True)</code></pre>
+</div>
+</div>
+<div id="9a258f29-9c98-452d-85e2-af5f22e94f48" class="cell" data-execution_count="73">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>yhat <span class="op">=</span> X<span class="op">@</span>What</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>loss <span class="op">=</span> torch.<span class="bu">sum</span>((y<span class="op">-</span>yhat)<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>loss</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="73">
+<pre><code>tensor(8587.6875, grad_fn=&lt;SumBackward0&gt;)</code></pre>
+</div>
+</div>
+<p><code>-</code> loss를 꼬리표의 근원인 What으로 미분</p>
+<div id="5e066663-2f5d-4393-bb7f-41a17e14dfd9" class="cell" data-execution_count="74">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>loss.backward() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><code>-</code> What 에 미분값이 저장</p>
+<div id="dcec69a8-b05b-49ab-911a-c66522fb8af0" class="cell" data-execution_count="75">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>What.grad</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="75">
+<pre><code>tensor([[-1342.2524],
+        [ 1188.9305]])</code></pre>
+</div>
+</div>
+<p><code>-</code> 미분 전</p>
+<div id="9a5f8e7e-b06a-45c7-aeb5-dc97950c0101" class="cell" data-execution_count="79">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>What <span class="op">=</span> torch.tensor([[<span class="op">-</span><span class="fl">5.0</span>],[<span class="fl">10.0</span>]],requires_grad<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>yhat <span class="op">=</span> X<span class="op">@</span>What</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>loss <span class="op">=</span> torch.<span class="bu">sum</span>((y<span class="op">-</span>yhat)<span class="op">**</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="21586181-fc95-4357-b2cd-861860f7e117" class="cell" data-execution_count="80">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>What.data, What.grad</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="80">
+<pre><code>(tensor([[-5.],
+         [10.]]),
+ None)</code></pre>
+</div>
+</div>
+<div id="8959e253-73f0-45a9-bc45-56f2aab6d78f" class="cell" data-execution_count="82">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>loss.backward()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><code>-</code> 미분 후</p>
+<div id="32fadc74-3c07-43ff-aa34-479ce9beeef9" class="cell" data-execution_count="83">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>What.data, What.grad</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="83">
+<pre><code>(tensor([[-5.],
+         [10.]]),
+ tensor([[-1342.2524],
+         [ 1188.9305]]))</code></pre>
+</div>
+</div>
+<p><code>-</code> <strong>1회 업데이트 과정</strong></p>
+<div id="7418ece4-8347-4e93-a02d-739103c636e8" class="cell" data-execution_count="85">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>alpha<span class="op">=</span><span class="fl">0.001</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>What<span class="sc">.</span>data<span class="sc">}</span><span class="ss"> -- 수정전"</span>)</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="op">-</span>alpha<span class="op">*</span>What<span class="sc">.</span>grad<span class="sc">}</span><span class="ss"> -- 수정하는폭"</span>)</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>What<span class="sc">.</span>data<span class="op">-</span>alpha<span class="op">*</span>What<span class="sc">.</span>grad<span class="sc">}</span><span class="ss"> -- 수정후"</span>)</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>torch<span class="sc">.</span>tensor([[<span class="fl">2.5</span>],[<span class="dv">4</span>]])<span class="sc">}</span><span class="ss"> -- 참값"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tensor([[-5.],
+        [10.]]) -- 수정전
+tensor([[ 1.3423],
+        [-1.1889]]) -- 수정하는폭
+tensor([[-3.6577],
+        [ 8.8111]]) -- 수정후
+tensor([[2.5000],
+        [4.0000]]) -- 참값</code></pre>
+</div>
+</div>
+<div id="3ead9ded-b714-4c52-b0bf-642b175bee6b" class="cell" data-execution_count="87">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>Wbefore <span class="op">=</span> What.data</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>Wafter <span class="op">=</span> What.data <span class="op">-</span> alpha <span class="op">*</span> What.grad</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>plt.plot(x,y,<span class="st">'o'</span>,label<span class="op">=</span><span class="vs">r'observed data'</span>)</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>plt.plot(x,X<span class="op">@</span>Wbefore,<span class="st">'--'</span>, label<span class="op">=</span><span class="vs">r"$\hat{\bf y}_</span><span class="sc">{before}</span><span class="vs">={\bf X}@\hat{\bf W}_</span><span class="sc">{before}</span><span class="vs">$"</span>)</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>plt.plot(x,X<span class="op">@</span>Wafter,<span class="st">'--'</span>, label<span class="op">=</span><span class="vs">r"$\hat{\bf y}_</span><span class="sc">{after}</span><span class="vs">={\bf X}@\hat{\bf W}_</span><span class="sc">{after}</span><span class="vs">$"</span>)</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>plt.legend()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="1-2.회귀(회귀모형,손실함수,파이토치를이용한추정)_files/figure-html/cell-37-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="c.-3단계---iteration" class="level4">
+<h4 class="anchored" data-anchor-id="c.-3단계---iteration">C. 3단계 - iteration</h4>
+<p><code>-</code> <strong>What.grad = None</strong>을 꼭 해줘야함</p>
+<ul>
+<li><code>loss.backward()</code> 의 역할
+<ul>
+<li><code>What.grad</code> <span class="math inline">\(\leftarrow\)</span> <code>What.grad</code> + <code>What에서의미분값</code></li>
+</ul></li>
+</ul>
+<div id="18361d9c-49ea-44a2-80ef-48a81c8f5e33" class="cell" data-execution_count="88">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>What <span class="op">=</span> torch.tensor([[<span class="op">-</span><span class="fl">5.0</span>],[<span class="fl">10.0</span>]],requires_grad<span class="op">=</span><span class="va">True</span>) <span class="co"># 최초의 직선을 만드는 값</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> epoc <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">30</span>):</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>    yhat <span class="op">=</span> X<span class="op">@</span>What </span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>    loss <span class="op">=</span> torch.<span class="bu">sum</span>((y<span class="op">-</span>yhat)<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>    loss.backward()</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>    What.data <span class="op">=</span> What.data <span class="op">-</span> <span class="fl">0.001</span> <span class="op">*</span> What.grad</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>    What.grad <span class="op">=</span> <span class="va">None</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="0376cabe-b390-40dd-98a8-c298143460d5" class="cell" data-execution_count="89">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>plt.plot(x,y,<span class="st">'o'</span>,label<span class="op">=</span><span class="vs">r"observed: $(x_i,y_i)$"</span>)</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>plt.plot(x,X<span class="op">@</span>What.data,<span class="st">'--o'</span>, label<span class="op">=</span><span class="vs">r"estimated: $(x_i,\hat</span><span class="sc">{y}</span><span class="vs">_i)$ -- after 30 iterations (=epochs)"</span>, alpha<span class="op">=</span><span class="fl">0.4</span> )</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>plt.legend()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="1-2.회귀(회귀모형,손실함수,파이토치를이용한추정)_files/figure-html/cell-39-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
 
 
 </section>

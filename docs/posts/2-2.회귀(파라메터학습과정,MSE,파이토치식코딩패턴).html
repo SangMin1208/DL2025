@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="이상민">
+<meta name="dcterms.date" content="2025-03-27">
 
-<title>DL2025</title>
+<title>2-2. 회귀(파라메터 학습과정, MSE, 파이토치식 코딩패턴1) – DL2025</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,27 +22,59 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-e26003cea8cd680ca0c55a263523d882.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-4e350e956af7e737a589c4f4a516a570.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e26003cea8cd680ca0c55a263523d882.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-4e350e956af7e737a589c4f4a516a570.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -68,77 +102,19 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<script>
 
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
 
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-author',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-title-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
-
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
-
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../styles.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">DL2025</span>
     </a>
   </div>
@@ -149,7 +125,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
+    <a class="nav-link" href="../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item compact">
@@ -172,92 +148,181 @@ window.Quarto = {
 <!-- content -->
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-page-left">
-      <h1 class="title">DL2025</h1>
+    <div class="quarto-title column-body">
+      <h1 class="title">2-2. 회귀(파라메터 학습과정, MSE, 파이토치식 코딩패턴1)</h1>
                       </div>
   </div>
     
   
-  <div class="quarto-title-meta column-page-left">
+  <div class="quarto-title-meta">
 
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>이상민 </p>
+            </div>
+    </div>
       
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">March 27, 2025</p>
+      </div>
+    </div>
     
       
     </div>
     
   
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(3)</span></div></div></div>
+    
 <!-- main -->
-<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+<main class="content quarto-banner-title-block" id="quarto-document-content">
 
 
 
 
 
-
-
-
-
-<div class="quarto-listing quarto-listing-container-table" id="listing-listing">
-<table class="quarto-listing-table table">
-<thead>
-<tr>
-<th>
-Date
-</th>
-<th>
-Title
-</th>
-<th>
-Author
-</th>
-</tr>
-</thead>
-<tbody class="list">
-<tr data-index="0" data-listing-date-sort="1743033600000" data-listing-file-modified-sort="1743644682883" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="11" data-listing-title-sort="2-2. 회귀(파라메터 학습과정, MSE, 파이토치식 코딩패턴1)" data-listing-filename-sort="2-2.회귀(파라메터학습과정,MSE,파이토치식코딩패턴).ipynb">
-<td>
-<span class="listing-date">Mar 27, 2025</span>
-</td>
-<td>
-<a href="./posts/2-2.회귀(파라메터학습과정,MSE,파이토치식코딩패턴).html" class="title listing-title">2-2. 회귀(파라메터 학습과정, MSE, 파이토치식 코딩패턴1)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="1" data-listing-date-sort="1742947200000" data-listing-file-modified-sort="1743643973278" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="764" data-listing-title-sort="1-2, 2-1. 회귀(회귀모형, 손실함수, 파이토치를 이용한 추정)" data-listing-filename-sort="1-2.회귀(회귀모형,손실함수,파이토치를이용한추정).ipynb">
-<td>
-<span class="listing-date">Mar 26, 2025</span>
-</td>
-<td>
-<a href="./posts/1-2.회귀(회귀모형,손실함수,파이토치를이용한추정).html" class="title listing-title">1-2, 2-1. 회귀(회귀모형, 손실함수, 파이토치를 이용한 추정)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="2" data-listing-date-sort="1742860800000" data-listing-file-modified-sort="1743641823137" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="247" data-listing-title-sort="1-1. torch(파이토치 기본)" data-listing-filename-sort="1-1.torch(파이토치기본).ipynb">
-<td>
-<span class="listing-date">Mar 25, 2025</span>
-</td>
-<td>
-<a href="./posts/1-1.torch(파이토치기본).html" class="title listing-title">1-1. torch(파이토치 기본)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="listing-no-matching d-none">
-No matching items
+<section id="imports" class="level3">
+<h3 class="anchored" data-anchor-id="imports">1. imports</h3>
+<div id="977d2d32-6ece-4508-8d9b-2596c2d4c7f7" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div></main> <!-- /main -->
+<div id="8f24a9d5-8bb8-4a8a-a1aa-7344c65ae7d7" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'figure.figsize'</span>] <span class="op">=</span> (<span class="fl">4.5</span>, <span class="fl">3.0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="파라메터-학습과정" class="level3">
+<h3 class="anchored" data-anchor-id="파라메터-학습과정">2. 파라메터 학습과정</h3>
+<div id="0a2915f3-39fc-4a0e-9c60-3a7a876d6a22" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>torch.manual_seed(<span class="dv">43052</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>x,_ <span class="op">=</span> torch.randn(<span class="dv">100</span>).sort()</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>eps <span class="op">=</span> torch.randn(<span class="dv">100</span>)<span class="op">*</span><span class="fl">0.5</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> torch.stack([torch.ones(<span class="dv">100</span>),x],axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>W <span class="op">=</span> torch.tensor([[<span class="fl">2.5</span>],[<span class="fl">4.0</span>]])</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> X<span class="op">@</span>W <span class="op">+</span> eps.reshape(<span class="dv">100</span>,<span class="dv">1</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> X[:,[<span class="dv">1</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="a.-학습과정-print" class="level4">
+<h4 class="anchored" data-anchor-id="a.-학습과정-print">A. 학습과정 print</h4>
+<div id="1b8e50cb-18d5-4140-b0e5-5240f5ec78a3" class="cell" data-scrolled="true" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>What <span class="op">=</span> torch.tensor([[<span class="op">-</span><span class="fl">5.0</span>],[<span class="fl">10.0</span>]], requires_grad<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>alpha <span class="op">=</span> <span class="fl">0.001</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"시작값 = </span><span class="sc">{</span>What<span class="sc">.</span>data<span class="sc">.</span>reshape(<span class="op">-</span><span class="dv">1</span>)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> epoc <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">30</span>):</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    yhat <span class="op">=</span> X <span class="op">@</span> What</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    loss <span class="op">=</span> torch.<span class="bu">sum</span>((y<span class="op">-</span>yhat)<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    loss.backward()</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    What.data <span class="op">=</span> What.data <span class="op">-</span> alpha <span class="op">*</span> What.grad</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'loss = </span><span class="sc">{</span>loss<span class="sc">:.2f}</span><span class="ss"> </span><span class="ch">\n</span><span class="ss">업데이트폭 = </span><span class="sc">{</span><span class="op">-</span>alpha <span class="op">*</span> What<span class="sc">.</span>grad<span class="sc">.</span>reshape(<span class="op">-</span><span class="dv">1</span>)<span class="sc">}</span><span class="ss"> </span><span class="ch">\n</span><span class="ss">업데이트결과: </span><span class="sc">{</span>What<span class="sc">.</span>data<span class="sc">.</span>reshape(<span class="op">-</span><span class="dv">1</span>)<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    What.grad <span class="op">=</span> <span class="va">None</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>시작값 = tensor([-5., 10.])
+loss = 8587.69 
+업데이트폭 = tensor([ 1.3423, -1.1889]) 
+업데이트결과: tensor([-3.6577,  8.8111])
+loss = 5675.21 
+업데이트폭 = tensor([ 1.1029, -0.9499]) 
+업데이트결과: tensor([-2.5548,  7.8612])
+loss = 3755.64 
+업데이트폭 = tensor([ 0.9056, -0.7596]) 
+업데이트결과: tensor([-1.6492,  7.1016])
+loss = 2489.58 
+업데이트폭 = tensor([ 0.7431, -0.6081]) 
+업데이트결과: tensor([-0.9061,  6.4935])
+loss = 1654.04 
+업데이트폭 = tensor([ 0.6094, -0.4872]) 
+업데이트결과: tensor([-0.2967,  6.0063])
+loss = 1102.32 
+업데이트폭 = tensor([ 0.4995, -0.3907]) 
+업데이트결과: tensor([0.2028, 5.6156])
+loss = 737.84 
+업데이트폭 = tensor([ 0.4091, -0.3136]) 
+업데이트결과: tensor([0.6119, 5.3020])
+loss = 496.97 
+업데이트폭 = tensor([ 0.3350, -0.2519]) 
+업데이트결과: tensor([0.9469, 5.0501])
+loss = 337.71 
+업데이트폭 = tensor([ 0.2742, -0.2025]) 
+업데이트결과: tensor([1.2211, 4.8477])
+loss = 232.40 
+업데이트폭 = tensor([ 0.2243, -0.1629]) 
+업데이트결과: tensor([1.4454, 4.6848])
+loss = 162.73 
+업데이트폭 = tensor([ 0.1834, -0.1311]) 
+업데이트결과: tensor([1.6288, 4.5537])
+loss = 116.63 
+업데이트폭 = tensor([ 0.1500, -0.1056]) 
+업데이트결과: tensor([1.7787, 4.4480])
+loss = 86.13 
+업데이트폭 = tensor([ 0.1226, -0.0851]) 
+업데이트결과: tensor([1.9013, 4.3629])
+loss = 65.93 
+업데이트폭 = tensor([ 0.1001, -0.0687]) 
+업데이트결과: tensor([2.0014, 4.2942])
+loss = 52.57 
+업데이트폭 = tensor([ 0.0818, -0.0554]) 
+업데이트결과: tensor([2.0832, 4.2388])
+loss = 43.72 
+업데이트폭 = tensor([ 0.0668, -0.0447]) 
+업데이트결과: tensor([2.1500, 4.1941])
+loss = 37.86 
+업데이트폭 = tensor([ 0.0545, -0.0361]) 
+업데이트결과: tensor([2.2045, 4.1579])
+loss = 33.97 
+업데이트폭 = tensor([ 0.0445, -0.0292]) 
+업데이트결과: tensor([2.2490, 4.1287])
+loss = 31.40 
+업데이트폭 = tensor([ 0.0363, -0.0236]) 
+업데이트결과: tensor([2.2853, 4.1051])
+loss = 29.70 
+업데이트폭 = tensor([ 0.0296, -0.0191]) 
+업데이트결과: tensor([2.3150, 4.0860])
+loss = 28.57 
+업데이트폭 = tensor([ 0.0242, -0.0155]) 
+업데이트결과: tensor([2.3392, 4.0705])
+loss = 27.83 
+업데이트폭 = tensor([ 0.0197, -0.0125]) 
+업데이트결과: tensor([2.3589, 4.0580])
+loss = 27.33 
+업데이트폭 = tensor([ 0.0161, -0.0101]) 
+업데이트결과: tensor([2.3750, 4.0479])
+loss = 27.00 
+업데이트폭 = tensor([ 0.0131, -0.0082]) 
+업데이트결과: tensor([2.3881, 4.0396])
+loss = 26.79 
+업데이트폭 = tensor([ 0.0107, -0.0067]) 
+업데이트결과: tensor([2.3988, 4.0330])
+loss = 26.64 
+업데이트폭 = tensor([ 0.0087, -0.0054]) 
+업데이트결과: tensor([2.4075, 4.0276])
+loss = 26.55 
+업데이트폭 = tensor([ 0.0071, -0.0044]) 
+업데이트결과: tensor([2.4146, 4.0232])
+loss = 26.48 
+업데이트폭 = tensor([ 0.0058, -0.0035]) 
+업데이트결과: tensor([2.4204, 4.0197])
+loss = 26.44 
+업데이트폭 = tensor([ 0.0047, -0.0029]) 
+업데이트결과: tensor([2.4251, 4.0168])
+loss = 26.41 
+업데이트폭 = tensor([ 0.0038, -0.0023]) 
+업데이트결과: tensor([2.4290, 4.0144])</code></pre>
+</div>
+</div>
+</section>
+<section id="b.-yhat의-관점에서-시각화" class="level4">
+<h4 class="anchored" data-anchor-id="b.-yhat의-관점에서-시각화">B. yhat의 관점에서 시각화</h4>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
