@@ -2,6 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/5-1.신경망(예측,시벤코정리의이면,드랍아웃).html",
+      "/posts/4-2.신경망(꺽인그래프한계,시벤코정리,MNIST).html",
       "/posts/4-1.신경망(로지스틱의한계극복).html",
       "/posts/3-2.로지스틱(sig,BCELoss,Adam).html",
       "/posts/3-1.회귀,로지스틱(파이토치식코딩패턴2,로지스틱모형).html",
