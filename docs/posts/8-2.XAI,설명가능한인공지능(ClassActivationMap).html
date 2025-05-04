@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="이상민">
+<meta name="dcterms.date" content="2025-05-04">
 
-<title>DL2025</title>
+<title>8-2. XAI, 설명 가능한 인공지능(Class Activation Map) – DL2025</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,27 +22,59 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-e26003cea8cd680ca0c55a263523d882.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-4e350e956af7e737a589c4f4a516a570.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e26003cea8cd680ca0c55a263523d882.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-4e350e956af7e737a589c4f4a516a570.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -68,77 +102,19 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<script>
 
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
 
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-author',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-title-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
-
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
-
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../styles.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">DL2025</span>
     </a>
   </div>
@@ -149,7 +125,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
+    <a class="nav-link" href="../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item compact">
@@ -172,224 +148,238 @@ window.Quarto = {
 <!-- content -->
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-page-left">
-      <h1 class="title">DL2025</h1>
+    <div class="quarto-title column-body">
+      <h1 class="title">8-2. XAI, 설명 가능한 인공지능(Class Activation Map)</h1>
                       </div>
   </div>
     
   
-  <div class="quarto-title-meta column-page-left">
+  <div class="quarto-title-meta">
 
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>이상민 </p>
+            </div>
+    </div>
       
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">May 4, 2025</p>
+      </div>
+    </div>
     
       
     </div>
     
   
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(15)</span></div></div></div>
+    
 <!-- main -->
-<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+<main class="content quarto-banner-title-block" id="quarto-document-content">
 
 
 
 
 
-
-
-
-
-<div class="quarto-listing quarto-listing-container-table" id="listing-listing">
-<table class="quarto-listing-table table">
-<thead>
-<tr>
-<th>
-Date
-</th>
-<th>
-Title
-</th>
-<th>
-Author
-</th>
-</tr>
-</thead>
-<tbody class="list">
-<tr data-index="0" data-listing-date-sort="1746316800000" data-listing-file-modified-sort="1746384230194" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="50" data-listing-title-sort="8-2. XAI, 설명 가능한 인공지능(Class Activation Map)" data-listing-filename-sort="8-2.XAI,설명가능한인공지능(ClassActivationMap).ipynb">
-<td>
-<span class="listing-date">May 4, 2025</span>
-</td>
-<td>
-<a href="./posts/8-2.XAI,설명가능한인공지능(ClassActivationMap).html" class="title listing-title">8-2. XAI, 설명 가능한 인공지능(Class Activation Map)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="1" data-listing-date-sort="1746230400000" data-listing-file-modified-sort="1746383364572" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="80" data-listing-title-sort="8-1. 합성곱신경망(MNIST, CIFAR10, XAI란?)" data-listing-filename-sort="8-1.합성곱신경망(MNIST,CIFAR10,XAI란?).ipynb">
-<td>
-<span class="listing-date">May 3, 2025</span>
-</td>
-<td>
-<a href="./posts/8-1.합성곱신경망(MNIST,CIFAR10,XAI란?).html" class="title listing-title">8-1. 합성곱신경망(MNIST, CIFAR10, XAI란?)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="2" data-listing-date-sort="1746144000000" data-listing-file-modified-sort="1746381429550" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="416" data-listing-title-sort="7-2. 합성곱신경망(CNN 핵심 레이어, CNN의 학습원리, FashionMNIST)" data-listing-filename-sort="7-2.합성곱신경망(CNN핵심레이어,CNN의학습원리,FashionMNIST).ipynb">
-<td>
-<span class="listing-date">May 2, 2025</span>
-</td>
-<td>
-<a href="./posts/7-2.합성곱신경망(CNN핵심레이어,CNN의학습원리,FashionMNIST).html" class="title listing-title">7-2. 합성곱신경망(CNN 핵심 레이어, CNN의 학습원리, FashionMNIST)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="3" data-listing-date-sort="1746057600000" data-listing-file-modified-sort="1746377183666" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="60" data-listing-title-sort="7-1. 합성곱신경망(CNN 장점, CNN 핵심 레이어)" data-listing-filename-sort="7-1.합성곱신경망(CNN장점, CNN핵심레이어).ipynb">
-<td>
-<span class="listing-date">May 1, 2025</span>
-</td>
-<td>
-<a href="./posts/7-1.합성곱신경망(CNN장점, CNN핵심레이어).html" class="title listing-title">7-1. 합성곱신경망(CNN 장점, CNN 핵심 레이어)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="4" data-listing-date-sort="1745971200000" data-listing-file-modified-sort="1746370959770" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="523" data-listing-title-sort="6-2. 신경망(다항분류, Fashion MNIST)" data-listing-filename-sort="6-2.신경망(다항분류,FashionMNIST).ipynb">
-<td>
-<span class="listing-date">Apr 30, 2025</span>
-</td>
-<td>
-<a href="./posts/6-2.신경망(다항분류,FashionMNIST).html" class="title listing-title">6-2. 신경망(다항분류, Fashion MNIST)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="5" data-listing-date-sort="1745884800000" data-listing-file-modified-sort="1746366807401" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="124" data-listing-title-sort="6-1. 신경망(데이터분석 코딩패턴)" data-listing-filename-sort="6-1.신경망(데이터분석코딩패턴).ipynb">
-<td>
-<span class="listing-date">Apr 29, 2025</span>
-</td>
-<td>
-<a href="./posts/6-1.신경망(데이터분석코딩패턴).html" class="title listing-title">6-1. 신경망(데이터분석 코딩패턴)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="6" data-listing-date-sort="1745798400000" data-listing-file-modified-sort="1746298176173" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1363" data-listing-title-sort="5-2. 신경망(신경망의 표현, GPU사용법, 확률적경사하강법)" data-listing-filename-sort="5-2.신경망(신경망의표현,GPU사용법,확률적경사하강법).ipynb">
-<td>
-<span class="listing-date">Apr 28, 2025</span>
-</td>
-<td>
-<a href="./posts/5-2.신경망(신경망의표현,GPU사용법,확률적경사하강법).html" class="title listing-title">5-2. 신경망(신경망의 표현, GPU사용법, 확률적경사하강법)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="7" data-listing-date-sort="1745712000000" data-listing-file-modified-sort="1746298178445" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="512" data-listing-title-sort="5-1. 신경망(예측, 시벤코정리의 이면, 드랍아웃)" data-listing-filename-sort="5-1.신경망(예측,시벤코정리의이면,드랍아웃).ipynb">
-<td>
-<span class="listing-date">Apr 27, 2025</span>
-</td>
-<td>
-<a href="./posts/5-1.신경망(예측,시벤코정리의이면,드랍아웃).html" class="title listing-title">5-1. 신경망(예측, 시벤코정리의 이면, 드랍아웃)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="8" data-listing-date-sort="1745625600000" data-listing-file-modified-sort="1746288134244" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="537" data-listing-title-sort="4-2. 신경망(꺽인 그래프의 한계, 시벤코 정리, MNIST)" data-listing-filename-sort="4-2.신경망(꺽인그래프한계,시벤코정리,MNIST).ipynb">
-<td>
-<span class="listing-date">Apr 26, 2025</span>
-</td>
-<td>
-<a href="./posts/4-2.신경망(꺽인그래프한계,시벤코정리,MNIST).html" class="title listing-title">4-2. 신경망(꺽인 그래프의 한계, 시벤코 정리, MNIST)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="9" data-listing-date-sort="1745539200000" data-listing-file-modified-sort="1746086864915" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="298" data-listing-title-sort="4-1. 신경망(로지스틱의 한계 극복)" data-listing-filename-sort="4-1.신경망(로지스틱의한계극복).ipynb">
-<td>
-<span class="listing-date">Apr 25, 2025</span>
-</td>
-<td>
-<a href="./posts/4-1.신경망(로지스틱의한계극복).html" class="title listing-title">4-1. 신경망(로지스틱의 한계 극복)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="10" data-listing-date-sort="1745452800000" data-listing-file-modified-sort="1746291794572" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="299" data-listing-title-sort="3-2. 로지스틱(sig, BCELoss, Adam)" data-listing-filename-sort="3-2.로지스틱(sig,BCELoss,Adam).ipynb">
-<td>
-<span class="listing-date">Apr 24, 2025</span>
-</td>
-<td>
-<a href="./posts/3-2.로지스틱(sig,BCELoss,Adam).html" class="title listing-title">3-2. 로지스틱(sig, BCELoss, Adam)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="11" data-listing-date-sort="1743120000000" data-listing-file-modified-sort="1744010045000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="284" data-listing-title-sort="3-1. 회귀,로지스틱(파이토치식 코딩패턴 2, 로지스틱 모형)" data-listing-filename-sort="3-1.회귀,로지스틱(파이토치식코딩패턴2,로지스틱모형).ipynb">
-<td>
-<span class="listing-date">Mar 28, 2025</span>
-</td>
-<td>
-<a href="./posts/3-1.회귀,로지스틱(파이토치식코딩패턴2,로지스틱모형).html" class="title listing-title">3-1. 회귀,로지스틱(파이토치식 코딩패턴 2, 로지스틱 모형)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="12" data-listing-date-sort="1743033600000" data-listing-file-modified-sort="1745908765900" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="118" data-listing-title-sort="2-2. 회귀(파라메터 학습과정, MSE, 파이토치식 코딩패턴1)" data-listing-filename-sort="2-2.회귀(파라메터학습과정,MSE,파이토치식코딩패턴).ipynb">
-<td>
-<span class="listing-date">Mar 27, 2025</span>
-</td>
-<td>
-<a href="./posts/2-2.회귀(파라메터학습과정,MSE,파이토치식코딩패턴).html" class="title listing-title">2-2. 회귀(파라메터 학습과정, MSE, 파이토치식 코딩패턴1)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="13" data-listing-date-sort="1742947200000" data-listing-file-modified-sort="1743643973000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="764" data-listing-title-sort="1-2, 2-1. 회귀(회귀모형, 손실함수, 파이토치를 이용한 추정)" data-listing-filename-sort="1-2.회귀(회귀모형,손실함수,파이토치를이용한추정).ipynb">
-<td>
-<span class="listing-date">Mar 26, 2025</span>
-</td>
-<td>
-<a href="./posts/1-2.회귀(회귀모형,손실함수,파이토치를이용한추정).html" class="title listing-title">1-2, 2-1. 회귀(회귀모형, 손실함수, 파이토치를 이용한 추정)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="14" data-listing-date-sort="1742860800000" data-listing-file-modified-sort="1743641823000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="247" data-listing-title-sort="1-1. torch(파이토치 기본)" data-listing-filename-sort="1-1.torch(파이토치기본).ipynb">
-<td>
-<span class="listing-date">Mar 25, 2025</span>
-</td>
-<td>
-<a href="./posts/1-1.torch(파이토치기본).html" class="title listing-title">1-1. torch(파이토치 기본)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="listing-no-matching d-none">
-No matching items
+<section id="imports" class="level3">
+<h3 class="anchored" data-anchor-id="imports">1. imports</h3>
+<div id="0e28bf51-2af5-429e-94a2-57a3fa64508d" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torchvision</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> PIL</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> io</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div></main> <!-- /main -->
+</section>
+<section id="torch.einsum" class="level3">
+<h3 class="anchored" data-anchor-id="torch.einsum">2. <code>torch.einsum</code></h3>
+<section id="a.-transpose" class="level4">
+<h4 class="anchored" data-anchor-id="a.-transpose">A. transpose</h4>
+<p><code>-</code> test tensor</p>
+<div id="f1e38849-61ea-4212-90c6-105e8a08a4af" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>tsr <span class="op">=</span> torch.arange(<span class="dv">12</span>).reshape(<span class="dv">4</span>,<span class="dv">3</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tsr</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<pre><code>tensor([[ 0,  1,  2],
+        [ 3,  4,  5],
+        [ 6,  7,  8],
+        [ 9, 10, 11]])</code></pre>
+</div>
+</div>
+<p><code>-</code> 행렬을 transpose 하는 방법 1</p>
+<div id="972b4940-bb9f-43d8-968b-1f35f3006bb0" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>tsr.t()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>tensor([[ 0,  3,  6,  9],
+        [ 1,  4,  7, 10],
+        [ 2,  5,  8, 11]])</code></pre>
+</div>
+</div>
+<p><code>-</code> 행렬을 transpose 하는 방법 2</p>
+<div id="65e420e7-4515-4656-b188-2157e9ec6abc" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>torch.einsum(<span class="st">'ij -&gt; ji'</span>, tsr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>tensor([[ 0,  3,  6,  9],
+        [ 1,  4,  7, 10],
+        [ 2,  5,  8, 11]])</code></pre>
+</div>
+</div>
+</section>
+<section id="b.-행렬곱" class="level4">
+<h4 class="anchored" data-anchor-id="b.-행렬곱">B. 행렬곱</h4>
+<p><code>-</code> test tensors</p>
+<div id="3d3b76ac-faa6-4fec-acd0-f0ef77e66632" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>tsr1 <span class="op">=</span> torch.arange(<span class="dv">12</span>).reshape(<span class="dv">4</span>,<span class="dv">3</span>).<span class="bu">float</span>()</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>tsr2 <span class="op">=</span> torch.arange(<span class="dv">15</span>).reshape(<span class="dv">3</span>,<span class="dv">5</span>).<span class="bu">float</span>()</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>tsr1,tsr2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>(tensor([[ 0.,  1.,  2.],
+         [ 3.,  4.,  5.],
+         [ 6.,  7.,  8.],
+         [ 9., 10., 11.]]),
+ tensor([[ 0.,  1.,  2.,  3.,  4.],
+         [ 5.,  6.,  7.,  8.,  9.],
+         [10., 11., 12., 13., 14.]]))</code></pre>
+</div>
+</div>
+<p><code>-</code> 행렬곱을 수행하는 방법1</p>
+<div id="3f627a5a-ef34-4353-a0ae-a2ed544c9ee9" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>tsr1 <span class="op">@</span> tsr2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>tensor([[ 25.,  28.,  31.,  34.,  37.],
+        [ 70.,  82.,  94., 106., 118.],
+        [115., 136., 157., 178., 199.],
+        [160., 190., 220., 250., 280.]])</code></pre>
+</div>
+</div>
+<p><code>-</code> 행렬곱을 수행하는 방법2</p>
+<div id="5f840e50-4a5f-402a-bdf9-d1575c7ccf2d" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>torch.einsum(<span class="st">'ij, jk -&gt; ik'</span>, tsr1,tsr2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>tensor([[ 25.,  28.,  31.,  34.,  37.],
+        [ 70.,  82.,  94., 106., 118.],
+        [115., 136., 157., 178., 199.],
+        [160., 190., 220., 250., 280.]])</code></pre>
+</div>
+</div>
+</section>
+<section id="c.-img_plt-vs-img_pytorch" class="level4">
+<h4 class="anchored" data-anchor-id="c.-img_plt-vs-img_pytorch">C. <code>img_plt</code> vs <code>img_pytorch</code></h4>
+<p><code>-</code> r,g,b 를 의미하는 tensor</p>
+<div id="49be3bfb-986c-4a58-8dda-d79806826c84" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> torch.zeros(<span class="dv">16</span>).reshape(<span class="dv">4</span>,<span class="dv">4</span>) <span class="op">+</span> <span class="fl">1.0</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> torch.zeros(<span class="dv">16</span>).reshape(<span class="dv">4</span>,<span class="dv">4</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> torch.zeros(<span class="dv">16</span>).reshape(<span class="dv">4</span>,<span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><code>-</code> torch를 쓰기 위해서는 이미지가 이렇게 저장되어 있어야함</p>
+<div id="746e61fc-9dba-44d7-9293-2010249d3f9b" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>img_pytorch <span class="op">=</span> torch.stack([r,g,b],axis<span class="op">=</span><span class="dv">0</span>).reshape(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">4</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(img_pytorch)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(img_pytorch.shape)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tensor([[[[1., 1., 1., 1.],
+          [1., 1., 1., 1.],
+          [1., 1., 1., 1.],
+          [1., 1., 1., 1.]],
+
+         [[0., 0., 0., 0.],
+          [0., 0., 0., 0.],
+          [0., 0., 0., 0.],
+          [0., 0., 0., 0.]],
+
+         [[0., 0., 0., 0.],
+          [0., 0., 0., 0.],
+          [0., 0., 0., 0.],
+          [0., 0., 0., 0.]]]])
+torch.Size([1, 3, 4, 4])</code></pre>
+</div>
+</div>
+<div id="9b1976c5-2a40-4fd5-bca3-32041dec52b6" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>img_matplotlib <span class="op">=</span> torch.stack([r,g,b],axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(img_matplotlib)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(img_matplotlib.shape)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>plt.imshow(img_matplotlib)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tensor([[[1., 0., 0.],
+         [1., 0., 0.],
+         [1., 0., 0.],
+         [1., 0., 0.]],
+
+        [[1., 0., 0.],
+         [1., 0., 0.],
+         [1., 0., 0.],
+         [1., 0., 0.]],
+
+        [[1., 0., 0.],
+         [1., 0., 0.],
+         [1., 0., 0.],
+         [1., 0., 0.]],
+
+        [[1., 0., 0.],
+         [1., 0., 0.],
+         [1., 0., 0.],
+         [1., 0., 0.]]])
+torch.Size([4, 4, 3])</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="8-2.XAI,설명가능한인공지능(ClassActivationMap)_files/figure-html/cell-11-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="af40dca8-5e4d-472d-96ee-a0b8581ec2ca" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 잘못된코드</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>plt.imshow(img_pytorch.squeeze().reshape(<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="8-2.XAI,설명가능한인공지능(ClassActivationMap)_files/figure-html/cell-12-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="f946e3b9-a213-4310-8f0a-0b6ba4ee1159" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 올바른코드1</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>plt.imshow(torch.einsum(<span class="st">'cij -&gt; ijc'</span>, img_pytorch.squeeze()))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="8-2.XAI,설명가능한인공지능(ClassActivationMap)_files/figure-html/cell-13-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="98159dfd-a207-49f3-a353-73fec1877b37" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 올바른코드2</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>plt.imshow(img_pytorch.squeeze().permute(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="8-2.XAI,설명가능한인공지능(ClassActivationMap)_files/figure-html/cell-14-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="이미지-자료-처리" class="level3">
+<h3 class="anchored" data-anchor-id="이미지-자료-처리">3. 이미지 자료 처리</h3>
+<section id="a.-데이터" class="level4">
+<h4 class="anchored" data-anchor-id="a.-데이터">A. 데이터</h4>
+<p><code>-</code> 데이터 다운로드</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

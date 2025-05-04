@@ -2,6 +2,11 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/8-2.XAI,설명가능한인공지능(ClassActivationMap).html",
+      "/posts/8-1.합성곱신경망(MNIST,CIFAR10,XAI란?).html",
+      "/posts/7-2.합성곱신경망(CNN핵심레이어,CNN의학습원리,FashionMNIST).html",
+      "/posts/7-1.합성곱신경망(CNN장점, CNN핵심레이어).html",
+      "/posts/6-2.신경망(다항분류,FashionMNIST).html",
       "/posts/6-1.신경망(데이터분석코딩패턴).html",
       "/posts/5-2.신경망(신경망의표현,GPU사용법,확률적경사하강법).html",
       "/posts/5-1.신경망(예측,시벤코정리의이면,드랍아웃).html",
