@@ -4,6 +4,7 @@
     "items": [
       "/posts/9-2.생성모형(GenerativeAdversarialNetwork(GAN)).html",
       "/posts/8-2.XAI,설명가능한인공지능(ClassActivationMap).html",
+      "/posts/8-1.합성곱신경망(MNIST,CIFAR10,XAI란?).html",
       "/posts/7-2.합성곱신경망(CNN핵심레이어,CNN의학습원리,FashionMNIST).html",
       "/posts/7-1.합성곱신경망(CNN장점, CNN핵심레이어).html",
       "/posts/6-2.신경망(다항분류,FashionMNIST).html",
