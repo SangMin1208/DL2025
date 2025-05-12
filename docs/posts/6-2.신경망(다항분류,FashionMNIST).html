@@ -216,7 +216,7 @@ window.Quarto = {
 
 <section id="imports" class="level3">
 <h3 class="anchored" data-anchor-id="imports">1. imports</h3>
-<div id="dca2cec6-1bf0-4a9f-98fd-1793910a257c" class="cell" data-execution_count="1">
+<div id="dca2cec6-1bf0-4a9f-98fd-1793910a257c" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torchvision</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -324,7 +324,7 @@ window.Quarto = {
 <section id="c.-실습-3개의-클래스를-구분" class="level2">
 <h2 class="anchored" data-anchor-id="c.-실습-3개의-클래스를-구분">C. 실습: 3개의 클래스를 구분</h2>
 <p><code>-</code> 데이터준비</p>
-<div id="a1bdc2ae-dbc4-4200-81d8-1c50e235aa61" class="cell" data-execution_count="8">
+<div id="a1bdc2ae-dbc4-4200-81d8-1c50e235aa61" class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#train_dataset = torchvision.datasets.MNIST(root='./data', train=True, download=True)</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>to_tensor <span class="op">=</span> torchvision.transforms.ToTensor()</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>X0 <span class="op">=</span> torch.stack([to_tensor(Xi) <span class="cf">for</span> Xi, yi <span class="kw">in</span> train_dataset <span class="cf">if</span> yi<span class="op">==</span><span class="dv">0</span>])</span>
@@ -333,10 +333,10 @@ window.Quarto = {
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> torch.concat([X0,X1,X2]).reshape(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span><span class="op">*</span><span class="dv">28</span><span class="op">*</span><span class="dv">28</span>)</span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> torch.tensor([<span class="dv">0</span>]<span class="op">*</span><span class="bu">len</span>(X0) <span class="op">+</span> [<span class="dv">1</span>]<span class="op">*</span><span class="bu">len</span>(X1)<span class="op">+</span> [<span class="dv">2</span>]<span class="op">*</span><span class="bu">len</span>(X2)).reshape(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>).<span class="bu">float</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="21b7e4da-835e-4144-9adc-1a5a1e3ddc91" class="cell" data-execution_count="9">
+<div id="21b7e4da-835e-4144-9adc-1a5a1e3ddc91" class="cell" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> torch.nn.functional.one_hot(y.reshape(<span class="op">-</span><span class="dv">1</span>).<span class="bu">long</span>()).<span class="bu">float</span>()</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
+<div class="cell-output cell-output-display" data-execution_count="20">
 <pre><code>tensor([[1., 0., 0.],
         [1., 0., 0.],
         [1., 0., 0.],
@@ -347,7 +347,7 @@ window.Quarto = {
 </div>
 </div>
 <p><code>-</code> 적합</p>
-<div id="aae9547d-7a72-4c38-86cf-d4ad8b2218c1" class="cell" data-execution_count="10">
+<div id="aae9547d-7a72-4c38-86cf-d4ad8b2218c1" class="cell" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>net <span class="op">=</span> torch.nn.Sequential(</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    torch.nn.Linear(<span class="dv">784</span>,<span class="dv">32</span>),</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    torch.nn.ReLU(),</span>
@@ -366,10 +366,10 @@ window.Quarto = {
 <span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    optimizr.step()</span>
 <span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    optimizr.zero_grad()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="9c8ab864-d825-45c3-8308-7f5dc6312264" class="cell" data-scrolled="true" data-execution_count="11">
+<div id="9c8ab864-d825-45c3-8308-7f5dc6312264" class="cell" data-scrolled="true" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>(netout.argmax(axis<span class="op">=</span><span class="dv">1</span>) <span class="op">==</span> y.argmax(axis<span class="op">=</span><span class="dv">1</span>)).<span class="bu">float</span>().mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<pre><code>tensor(0.9685)</code></pre>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<pre><code>tensor(0.9487)</code></pre>
 </div>
 </div>
 <div id="88a8db7e-6bae-4aaa-ad99-5a66e3838e40" class="cell" data-execution_count="13">
@@ -461,9 +461,9 @@ window.Quarto = {
 <p><a href="https://arxiv.org/abs/1708.07747" class="uri">https://arxiv.org/abs/1708.07747</a> (Xiao, Rasul, and Vollgraf 2017)</p>
 <p>[1] prob=sig(logit)</p>
 <p>[2] probs=soft(logits)</p>
-<div id="9cbe77d1-9568-4944-aa1b-037ba9615807" class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#train_dataset = torchvision.datasets.FashionMNIST(root='./data', train=True, download=True)</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co">#test_dataset = torchvision.datasets.FashionMNIST(root='./data', train=False, download=True)</span></span>
+<div id="9cbe77d1-9568-4944-aa1b-037ba9615807" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>train_dataset <span class="op">=</span> torchvision.datasets.FashionMNIST(root<span class="op">=</span><span class="st">'./data'</span>, train<span class="op">=</span><span class="va">True</span>, download<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>test_dataset <span class="op">=</span> torchvision.datasets.FashionMNIST(root<span class="op">=</span><span class="st">'./data'</span>, train<span class="op">=</span><span class="va">False</span>, download<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>to_tensor <span class="op">=</span> torchvision.transforms.ToTensor()</span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> torch.stack([to_tensor(img) <span class="cf">for</span> img, lbl <span class="kw">in</span> train_dataset])</span>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> torch.tensor([lbl <span class="cf">for</span> img, lbl <span class="kw">in</span> train_dataset])</span>

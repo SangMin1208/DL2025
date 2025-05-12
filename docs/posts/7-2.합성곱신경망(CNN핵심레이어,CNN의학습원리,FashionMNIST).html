@@ -518,7 +518,7 @@ Fig: conv2d 계산과정시각화
 <span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>    [ <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>]</span>
 <span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>]]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p><code>-</code> v_conv는 좌우방향의 펙셀 변화, 즉 수직 방향의 엣지를 감지하는데 적절</p>
+<p><code>-</code> v_conv는 좌우방향의 픽셀 변화, 즉 수직 방향의 엣지를 감지하는데 적절</p>
 <div id="bac69612-e994-4a6f-8cbe-4437c42a5908" class="cell" data-execution_count="40">
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">2</span>,<span class="dv">2</span>)</span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>fig.set_figheight(<span class="dv">8</span>)</span>
@@ -600,8 +600,8 @@ Fig: conv2d 계산과정시각화
 </div>
 </div>
 </section>
-<section id="e.-cde-relu-mp" class="level4">
-<h4 class="anchored" data-anchor-id="e.-cde-relu-mp">E. (C,D,E) + relu + mp</h4>
+<section id="e.-bcd-relu-mp" class="level4">
+<h4 class="anchored" data-anchor-id="e.-bcd-relu-mp">E. (B,C,D) + relu + mp</h4>
 <div id="e774b40f-cabb-4454-84ea-30b810995f9e" class="cell" data-execution_count="51">
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>relu <span class="op">=</span> torch.nn.ReLU()</span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>mp <span class="op">=</span> torch.nn.MaxPool2d(kernel_size<span class="op">=</span><span class="dv">13</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
