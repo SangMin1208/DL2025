@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="이상민">
+<meta name="dcterms.date" content="2025-05-18">
 
-<title>DL2025</title>
+<title>11-1. 추천시스템(Embedding 레이어, 사용자정의 네트워크, MF-based) – DL2025</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,27 +22,59 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-e26003cea8cd680ca0c55a263523d882.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-4e350e956af7e737a589c4f4a516a570.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e26003cea8cd680ca0c55a263523d882.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-4e350e956af7e737a589c4f4a516a570.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -68,77 +102,19 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<script>
 
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
 
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-author',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-title-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
-
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
-
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../styles.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">DL2025</span>
     </a>
   </div>
@@ -149,7 +125,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
+    <a class="nav-link" href="../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item compact">
@@ -172,268 +148,61 @@ window.Quarto = {
 <!-- content -->
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-page-left">
-      <h1 class="title">DL2025</h1>
+    <div class="quarto-title column-body">
+      <h1 class="title">11-1. 추천시스템(Embedding 레이어, 사용자정의 네트워크, MF-based)</h1>
                       </div>
   </div>
     
   
-  <div class="quarto-title-meta column-page-left">
+  <div class="quarto-title-meta">
 
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>이상민 </p>
+            </div>
+    </div>
       
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">May 18, 2025</p>
+      </div>
+    </div>
     
       
     </div>
     
   
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(19)</span></div></div></div>
+    
 <!-- main -->
-<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+<main class="content quarto-banner-title-block" id="quarto-document-content">
 
 
 
 
 
-
-
-
-
-<div class="quarto-listing quarto-listing-container-table" id="listing-listing">
-<table class="quarto-listing-table table">
-<thead>
-<tr>
-<th>
-Date
-</th>
-<th>
-Title
-</th>
-<th>
-Author
-</th>
-</tr>
-</thead>
-<tbody class="list">
-<tr data-index="0" data-listing-date-sort="1747612800000" data-listing-file-modified-sort="1747636909349" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="845" data-listing-title-sort="11-2. 순환신경망(abc, abcd, 임베딩 공간의 이해, AbAcAd)" data-listing-filename-sort="99.11-2.순환신경망(abc,abcd,임베딩공간의이해,AbAcAd).ipynb">
-<td>
-<span class="listing-date">May 19, 2025</span>
-</td>
-<td>
-<a href="./posts/99.11-2.순환신경망(abc,abcd,임베딩공간의이해,AbAcAd).html" class="title listing-title">11-2. 순환신경망(abc, abcd, 임베딩 공간의 이해, AbAcAd)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="1" data-listing-date-sort="1747526400000" data-listing-file-modified-sort="1747631602693" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="3" data-listing-title-sort="11-1. 추천시스템(Embedding 레이어, 사용자정의  네트워크, MF-based)" data-listing-filename-sort="99.11-1.추천시스템(Embedding레이어,사용자정의네트워크,MF-based).ipynb">
-<td>
-<span class="listing-date">May 18, 2025</span>
-</td>
-<td>
-<a href="./posts/99.11-1.추천시스템(Embedding레이어,사용자정의네트워크,MF-based).html" class="title listing-title">11-1. 추천시스템(Embedding 레이어, 사용자정의 네트워크, MF-based)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="2" data-listing-date-sort="1747008000000" data-listing-file-modified-sort="1747631546877" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="440" data-listing-title-sort="10-2. 추천시스템(optimizer 사용 고급, MF-based 추천시스템)" data-listing-filename-sort="99.10-2.추천시스템(optimizeer사용고급,MF-based추천시스템).ipynb">
-<td>
-<span class="listing-date">May 12, 2025</span>
-</td>
-<td>
-<a href="./posts/99.10-2.추천시스템(optimizeer사용고급,MF-based추천시스템).html" class="title listing-title">10-2. 추천시스템(optimizer 사용 고급, MF-based 추천시스템)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="3" data-listing-date-sort="1746403200000" data-listing-file-modified-sort="1747630677370" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="697" data-listing-title-sort="9-1. 생성모형(Generative Adversarial Network(GAN))" data-listing-filename-sort="9-2.생성모형(GenerativeAdversarialNetwork(GAN)).ipynb">
-<td>
-<span class="listing-date">May 5, 2025</span>
-</td>
-<td>
-<a href="./posts/9-2.생성모형(GenerativeAdversarialNetwork(GAN)).html" class="title listing-title">9-1. 생성모형(Generative Adversarial Network(GAN))</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="4" data-listing-date-sort="1746316800000" data-listing-file-modified-sort="1746561220548" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="356" data-listing-title-sort="8-2. XAI, 설명 가능한 인공지능(Class Activation Map)" data-listing-filename-sort="8-2.XAI,설명가능한인공지능(ClassActivationMap).ipynb">
-<td>
-<span class="listing-date">May 4, 2025</span>
-</td>
-<td>
-<a href="./posts/8-2.XAI,설명가능한인공지능(ClassActivationMap).html" class="title listing-title">8-2. XAI, 설명 가능한 인공지능(Class Activation Map)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="5" data-listing-date-sort="1746230400000" data-listing-file-modified-sort="1746559773028" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="80" data-listing-title-sort="8-1. 합성곱신경망(MNIST, CIFAR10, XAI란?)" data-listing-filename-sort="8-1.합성곱신경망(MNIST,CIFAR10,XAI란?).ipynb">
-<td>
-<span class="listing-date">May 3, 2025</span>
-</td>
-<td>
-<a href="./posts/8-1.합성곱신경망(MNIST,CIFAR10,XAI란?).html" class="title listing-title">8-1. 합성곱신경망(MNIST, CIFAR10, XAI란?)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="6" data-listing-date-sort="1746144000000" data-listing-file-modified-sort="1746558329837" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="416" data-listing-title-sort="7-2. 합성곱신경망(CNN 핵심 레이어, CNN의 학습원리, FashionMNIST)" data-listing-filename-sort="7-2.합성곱신경망(CNN핵심레이어,CNN의학습원리,FashionMNIST).ipynb">
-<td>
-<span class="listing-date">May 2, 2025</span>
-</td>
-<td>
-<a href="./posts/7-2.합성곱신경망(CNN핵심레이어,CNN의학습원리,FashionMNIST).html" class="title listing-title">7-2. 합성곱신경망(CNN 핵심 레이어, CNN의 학습원리, FashionMNIST)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="7" data-listing-date-sort="1746057600000" data-listing-file-modified-sort="1746556887952" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="60" data-listing-title-sort="7-1. 합성곱신경망(CNN 장점, CNN 핵심 레이어)" data-listing-filename-sort="7-1.합성곱신경망(CNN장점, CNN핵심레이어).ipynb">
-<td>
-<span class="listing-date">May 1, 2025</span>
-</td>
-<td>
-<a href="./posts/7-1.합성곱신경망(CNN장점, CNN핵심레이어).html" class="title listing-title">7-1. 합성곱신경망(CNN 장점, CNN 핵심 레이어)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="8" data-listing-date-sort="1745971200000" data-listing-file-modified-sort="1746530263792" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="523" data-listing-title-sort="6-2. 신경망(다항분류, Fashion MNIST)" data-listing-filename-sort="6-2.신경망(다항분류,FashionMNIST).ipynb">
-<td>
-<span class="listing-date">Apr 30, 2025</span>
-</td>
-<td>
-<a href="./posts/6-2.신경망(다항분류,FashionMNIST).html" class="title listing-title">6-2. 신경망(다항분류, Fashion MNIST)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="9" data-listing-date-sort="1745884800000" data-listing-file-modified-sort="1746544942737" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="124" data-listing-title-sort="6-1. 신경망(데이터분석 코딩패턴)" data-listing-filename-sort="6-1.신경망(데이터분석코딩패턴).ipynb">
-<td>
-<span class="listing-date">Apr 29, 2025</span>
-</td>
-<td>
-<a href="./posts/6-1.신경망(데이터분석코딩패턴).html" class="title listing-title">6-1. 신경망(데이터분석 코딩패턴)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="10" data-listing-date-sort="1745798400000" data-listing-file-modified-sort="1746547766962" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1363" data-listing-title-sort="5-2. 신경망(신경망의 표현, GPU사용법, 확률적경사하강법)" data-listing-filename-sort="5-2.신경망(신경망의표현,GPU사용법,확률적경사하강법).ipynb">
-<td>
-<span class="listing-date">Apr 28, 2025</span>
-</td>
-<td>
-<a href="./posts/5-2.신경망(신경망의표현,GPU사용법,확률적경사하강법).html" class="title listing-title">5-2. 신경망(신경망의 표현, GPU사용법, 확률적경사하강법)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="11" data-listing-date-sort="1745712000000" data-listing-file-modified-sort="1746544933809" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="512" data-listing-title-sort="5-1. 신경망(예측, 시벤코정리의 이면, 드랍아웃)" data-listing-filename-sort="5-1.신경망(예측,시벤코정리의이면,드랍아웃).ipynb">
-<td>
-<span class="listing-date">Apr 27, 2025</span>
-</td>
-<td>
-<a href="./posts/5-1.신경망(예측,시벤코정리의이면,드랍아웃).html" class="title listing-title">5-1. 신경망(예측, 시벤코정리의 이면, 드랍아웃)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="12" data-listing-date-sort="1745625600000" data-listing-file-modified-sort="1746544933005" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="537" data-listing-title-sort="4-2. 신경망(꺽인 그래프의 한계, 시벤코 정리, MNIST)" data-listing-filename-sort="4-2.신경망(꺽인그래프한계,시벤코정리,MNIST).ipynb">
-<td>
-<span class="listing-date">Apr 26, 2025</span>
-</td>
-<td>
-<a href="./posts/4-2.신경망(꺽인그래프한계,시벤코정리,MNIST).html" class="title listing-title">4-2. 신경망(꺽인 그래프의 한계, 시벤코 정리, MNIST)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="13" data-listing-date-sort="1745539200000" data-listing-file-modified-sort="1746544533837" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="298" data-listing-title-sort="4-1. 신경망(로지스틱의 한계 극복)" data-listing-filename-sort="4-1.신경망(로지스틱의한계극복).ipynb">
-<td>
-<span class="listing-date">Apr 25, 2025</span>
-</td>
-<td>
-<a href="./posts/4-1.신경망(로지스틱의한계극복).html" class="title listing-title">4-1. 신경망(로지스틱의 한계 극복)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="14" data-listing-date-sort="1745452800000" data-listing-file-modified-sort="1746540637195" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="299" data-listing-title-sort="3-2. 로지스틱(sig, BCELoss, Adam)" data-listing-filename-sort="3-2.로지스틱(sig,BCELoss,Adam).ipynb">
-<td>
-<span class="listing-date">Apr 24, 2025</span>
-</td>
-<td>
-<a href="./posts/3-2.로지스틱(sig,BCELoss,Adam).html" class="title listing-title">3-2. 로지스틱(sig, BCELoss, Adam)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="15" data-listing-date-sort="1743120000000" data-listing-file-modified-sort="1746540632747" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="284" data-listing-title-sort="3-1. 회귀,로지스틱(파이토치식 코딩패턴 2, 로지스틱 모형)" data-listing-filename-sort="3-1.회귀,로지스틱(파이토치식코딩패턴2,로지스틱모형).ipynb">
-<td>
-<span class="listing-date">Mar 28, 2025</span>
-</td>
-<td>
-<a href="./posts/3-1.회귀,로지스틱(파이토치식코딩패턴2,로지스틱모형).html" class="title listing-title">3-1. 회귀,로지스틱(파이토치식 코딩패턴 2, 로지스틱 모형)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="16" data-listing-date-sort="1743033600000" data-listing-file-modified-sort="1746540632731" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="118" data-listing-title-sort="2-2. 회귀(파라메터 학습과정, MSE, 파이토치식 코딩패턴1)" data-listing-filename-sort="2-2.회귀(파라메터학습과정,MSE,파이토치식코딩패턴).ipynb">
-<td>
-<span class="listing-date">Mar 27, 2025</span>
-</td>
-<td>
-<a href="./posts/2-2.회귀(파라메터학습과정,MSE,파이토치식코딩패턴).html" class="title listing-title">2-2. 회귀(파라메터 학습과정, MSE, 파이토치식 코딩패턴1)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="17" data-listing-date-sort="1742947200000" data-listing-file-modified-sort="1746540627347" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="764" data-listing-title-sort="1-2, 2-1. 회귀(회귀모형, 손실함수, 파이토치를 이용한 추정)" data-listing-filename-sort="1-2.회귀(회귀모형,손실함수,파이토치를이용한추정).ipynb">
-<td>
-<span class="listing-date">Mar 26, 2025</span>
-</td>
-<td>
-<a href="./posts/1-2.회귀(회귀모형,손실함수,파이토치를이용한추정).html" class="title listing-title">1-2, 2-1. 회귀(회귀모형, 손실함수, 파이토치를 이용한 추정)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-<tr data-index="18" data-listing-date-sort="1742860800000" data-listing-file-modified-sort="1746539870238" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="247" data-listing-title-sort="1-1. torch(파이토치 기본)" data-listing-filename-sort="1-1.torch(파이토치기본).ipynb">
-<td>
-<span class="listing-date">Mar 25, 2025</span>
-</td>
-<td>
-<a href="./posts/1-1.torch(파이토치기본).html" class="title listing-title">1-1. torch(파이토치 기본)</a>
-</td>
-<td>
-<span class="listing-author">이상민 </span>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="listing-no-matching d-none">
-No matching items
+<section id="imports" class="level3">
+<h3 class="anchored" data-anchor-id="imports">1. imports</h3>
+<div id="5710d8e2-423d-44f9-8e95-18f8f6f4b299" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div></main> <!-- /main -->
+<div id="29242cc7-701c-4cc5-a068-89225db11cb4" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'figure.figsize'</span>] <span class="op">=</span> (<span class="fl">4.5</span>, <span class="fl">3.0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="torch.nn.embedding" class="level3">
+<h3 class="anchored" data-anchor-id="torch.nn.embedding">2. torch.nn.Embedding</h3>
+
+
+</section>
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
