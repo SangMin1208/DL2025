@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/99.12-1.순관신경망(겹장,RNNcell).html",
       "/posts/99.11-2.순환신경망(abc,abcd,임베딩공간의이해,AbAcAd).html",
       "/posts/99.11-1.추천시스템(Embedding레이어,사용자정의네트워크,MF-based).html",
       "/posts/99.10-2.추천시스템(optimizeer사용고급,MF-based추천시스템).html",
