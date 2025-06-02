@@ -1,0 +1,2071 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.39">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="이상민">
+<meta name="dcterms.date" content="2025-06-02">
+
+<title>13-2. 강화학습(Bandit 환경 설계 및 풀이, 4x4 Grid World 게임설명 및 구현) – DL2025</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-e26003cea8cd680ca0c55a263523d882.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-4e350e956af7e737a589c4f4a516a570.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">DL2025</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">13-2. 강화학습(Bandit 환경 설계 및 풀이, 4x4 Grid World 게임설명 및 구현)</h1>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>이상민 </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">June 2, 2025</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="imports" class="level3">
+<h3 class="anchored" data-anchor-id="imports">1. imports</h3>
+<div id="bba9863a-a563-42b7-9f5d-7d021862b075" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gymnasium <span class="im">as</span> gym</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#---#</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> collections</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.animation <span class="im">import</span> FuncAnimation</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> IPython</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="bandit-환경-설계-및-풀이" class="level3">
+<h3 class="anchored" data-anchor-id="bandit-환경-설계-및-풀이">2. Bandit 환경 설계 및 풀이</h3>
+<section id="a.-간단히-개념만-실습" class="level4">
+<h4 class="anchored" data-anchor-id="a.-간단히-개념만-실습">A. 간단히 개념만 실습</h4>
+<div id="9215fefb-10e2-41f1-8922-2155f7884d96" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>action_space <span class="op">=</span> [<span class="dv">0</span>,<span class="dv">1</span>] </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>actions_deque <span class="op">=</span> collections.deque(maxlen<span class="op">=</span><span class="dv">500</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>rewards_deque <span class="op">=</span>  collections.deque(maxlen<span class="op">=</span><span class="dv">500</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#---#</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="7f03a332-56b0-49a4-bf4b-0d6504085327" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">10</span>):</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    action <span class="op">=</span> np.random.choice(action_space)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> action <span class="op">==</span> <span class="dv">1</span>:</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        reward <span class="op">=</span> <span class="dv">10</span> </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        reward <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    actions_deque.append(action)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    rewards_deque.append(reward)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="082b131f-f513-47de-983d-0a7433741ab3" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>actions_deque</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>deque([0, 0, 1, 1, 1, 1, 1, 1, 1, 0], maxlen=500)</code></pre>
+</div>
+</div>
+<div id="862d7d15-3c1f-4ab7-be78-3cffad84b5d0" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>rewards_deque</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>deque([1, 1, 10, 10, 10, 10, 10, 10, 10, 1], maxlen=500)</code></pre>
+</div>
+</div>
+<div id="3b631f8c-d59b-43a7-9ed0-da5ac9a08ac4" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>actions_numpy <span class="op">=</span> np.array(actions_deque)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>rewards_numpy <span class="op">=</span> np.array(rewards_deque)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="e739f0f9-5abe-4a70-a6d2-d2f9f9832608" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>q0 <span class="op">=</span> rewards_numpy[actions_numpy <span class="op">==</span> <span class="dv">0</span>].mean()</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>q1 <span class="op">=</span> rewards_numpy[actions_numpy <span class="op">==</span> <span class="dv">1</span>].mean()</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>q_table <span class="op">=</span> np.array([q0,q1])</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>q_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>array([ 1., 10.])</code></pre>
+</div>
+</div>
+<div id="6f9da19e-5dcd-47d5-a36b-6cb113ad7527" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>action <span class="op">=</span> q_table.argmax()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="a82a481b-1543-41fd-b043-75968b8c5529" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    action <span class="op">=</span> q_table.argmax()</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> action <span class="op">==</span> <span class="dv">1</span>:</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>        reward <span class="op">=</span> <span class="dv">10</span> </span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        reward <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    actions_deque.append(action)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    rewards_deque.append(reward)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    actions_numpy <span class="op">=</span> np.array(actions_deque)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    rewards_numpy <span class="op">=</span> np.array(rewards_deque)    </span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    q0 <span class="op">=</span> rewards_numpy[actions_numpy <span class="op">==</span> <span class="dv">0</span>].mean()</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    q1 <span class="op">=</span> rewards_numpy[actions_numpy <span class="op">==</span> <span class="dv">1</span>].mean()</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    q_table <span class="op">=</span> np.array([q0,q1])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="bb880124-8071-45ff-af29-54c5ae4a2b99" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>actions_numpy</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>array([0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1])</code></pre>
+</div>
+</div>
+<div id="1820c970-c69c-48c5-8ae5-99798506624b" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>rewards_numpy</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<pre><code>array([ 1,  1, 10, 10, 10, 10, 10, 10, 10,  1, 10, 10, 10, 10, 10])</code></pre>
+</div>
+</div>
+</section>
+<section id="b.-클래스를-이용한-구현" class="level4">
+<h4 class="anchored" data-anchor-id="b.-클래스를-이용한-구현">B. 클래스를 이용한 구현</h4>
+<div id="4b35143f-81a5-45e4-a41c-3411fdc6d05a" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Bandit:</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.reward <span class="op">=</span> <span class="va">None</span> </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> step(<span class="va">self</span>,action):</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> action <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.reward <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>: </span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.reward <span class="op">=</span> <span class="dv">10</span> </span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.reward </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="0554e9f8-cb36-484e-8087-3aebe6df3efd" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Agent:</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span> </span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> act(<span class="va">self</span>):</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>        <span class="co"># 만약에 경험이 20보다 작음 --&gt; 랜덤액션 </span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>        <span class="co"># 경험이 20보다 크면 --&gt; action = q_tabel.argmax()</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span> </span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> save_experience(<span class="va">self</span>):</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>        <span class="co"># 데이터 저장 </span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span> </span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> learn(<span class="va">self</span>):</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>        <span class="co"># q_table 을 업데이트하는 과정 </span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<hr>
+<div id="d51c3353-e8da-4e6a-ae39-716bbd8b43e8" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Agent:</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.n_experiences <span class="op">=</span> <span class="dv">0</span> </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.action_space <span class="op">=</span> [<span class="dv">0</span>,<span class="dv">1</span>]</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.action <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.reward <span class="op">=</span> <span class="va">None</span> </span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.q_table <span class="op">=</span> <span class="va">None</span> </span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.actions <span class="op">=</span> collections.deque(maxlen<span class="op">=</span><span class="dv">500</span>)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.rewards <span class="op">=</span> collections.deque(maxlen<span class="op">=</span><span class="dv">500</span>)</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> act(<span class="va">self</span>):</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="va">self</span>.n_experiences <span class="op">&lt;</span> <span class="dv">20</span>:</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.action <span class="op">=</span> np.random.choice(<span class="va">self</span>.action_space)</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>: </span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.action <span class="op">=</span> <span class="va">self</span>.q_table.argmax()</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"버튼</span><span class="sc">{</span><span class="va">self</span><span class="sc">.</span>action<span class="sc">}</span><span class="ss">누름!"</span>)</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> save_experience(<span class="va">self</span>):</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.actions.append(<span class="va">self</span>.action)</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.rewards.append(<span class="va">self</span>.reward)</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.n_experiences <span class="op">=</span> <span class="va">self</span>.n_experiences <span class="op">+</span> <span class="dv">1</span> </span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> learn(<span class="va">self</span>):</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="va">self</span>.n_experiences <span class="op">&lt;</span> <span class="dv">20</span>:</span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>            <span class="cf">pass</span></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>: </span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>            actions <span class="op">=</span> np.array(<span class="va">self</span>.actions)</span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>            rewards <span class="op">=</span> np.array(<span class="va">self</span>.rewards)</span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>            q0 <span class="op">=</span> rewards[actions<span class="op">==</span><span class="dv">0</span>].mean()</span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>            q1 <span class="op">=</span> rewards[actions<span class="op">==</span><span class="dv">1</span>].mean()</span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.q_table <span class="op">=</span> np.array([q0,q1])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="060b5e17-943a-46dc-8e5a-fe81c0fbcb10" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> Bandit()</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>player <span class="op">=</span> Agent()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="9352575b-b06b-47cf-9021-d3997e320975" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">50</span>):</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># step1 : agent --&gt; env </span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    player.act()</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># step2: agnet &lt;-- env </span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    player.reward <span class="op">=</span> env.step(player.action)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># step3: agent: update (save + learn) </span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    player.save_experience() </span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    player.learn()</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">#----#</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> player.n_experiences <span class="op">&lt;</span> <span class="dv">20</span>: </span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span> </span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>: </span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>        recent_rewards <span class="op">=</span> np.array(player.rewards)[<span class="op">-</span><span class="dv">20</span>:]</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> recent_rewards.mean() <span class="op">&gt;</span> <span class="fl">9.5</span>:</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">"---"</span>)</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>player<span class="sc">.</span>n_experiences<span class="sc">}</span><span class="ss">번만에 게임클리어"</span>)</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>버튼1누름!
+버튼0누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼0누름!
+버튼0누름!
+버튼0누름!
+버튼0누름!
+버튼1누름!
+버튼1누름!
+버튼0누름!
+버튼0누름!
+버튼1누름!
+버튼0누름!
+버튼0누름!
+버튼1누름!
+버튼1누름!
+버튼0누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+버튼1누름!
+---
+36번만에 게임클리어</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="예비학습-gym.spaces" class="level3">
+<h3 class="anchored" data-anchor-id="예비학습-gym.spaces">3. 예비학습 : <code>gym.spaces</code></h3>
+<p><code>-</code> 예시 1</p>
+<div id="1ec408dd-c394-4ae2-bdf5-5ebb58799dfd" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>action_space <span class="op">=</span> gym.spaces.Discrete(<span class="dv">4</span>) </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>action_space </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<pre><code>Discrete(4)</code></pre>
+</div>
+</div>
+<div id="5de027cb-8a89-40a5-a0b5-d1aaf1bf3311" class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>[action_space.sample() <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<pre><code>[3, 0, 3, 0, 0]</code></pre>
+</div>
+</div>
+<div id="c9b7b3dc-b70e-4023-ac08-eec2f0c5bcc4" class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="dv">0</span> <span class="kw">in</span> action_space</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="23">
+<pre><code>True</code></pre>
+</div>
+</div>
+<div id="54b302e3-be83-4fd3-bdc9-7840855e0574" class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="dv">4</span> <span class="kw">in</span> action_space</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
+<pre><code>False</code></pre>
+</div>
+</div>
+<p><code>-</code> 예시 2</p>
+<div id="d99e5251-e136-4cb3-8a92-1b5d015124bb" class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>state_space <span class="op">=</span> gym.spaces.MultiDiscrete([<span class="dv">4</span>,<span class="dv">4</span>])</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>state_space</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
+<pre><code>MultiDiscrete([4 4])</code></pre>
+</div>
+</div>
+<div id="1bd1da5b-52ea-4230-9cc8-07b3368ac122" class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>[state_space.sample() <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
+<pre><code>[array([0, 1]), array([0, 3]), array([0, 3]), array([1, 1]), array([2, 3])]</code></pre>
+</div>
+</div>
+<div id="be8a8b20-4e4b-403f-9349-f369464adf71" class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>np.array([<span class="dv">0</span>,<span class="dv">1</span>]) <span class="kw">in</span> state_space</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="27">
+<pre><code>True</code></pre>
+</div>
+</div>
+<div id="f9585b27-b78b-43f3-8075-139f2af05bbd" class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>np.array([<span class="dv">3</span>,<span class="dv">3</span>]) <span class="kw">in</span> state_space</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="28">
+<pre><code>True</code></pre>
+</div>
+</div>
+<div id="1db1a295-d3fa-4e73-a0b8-8beecdd64dfb" class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>np.array([<span class="dv">3</span>,<span class="dv">4</span>]) <span class="kw">in</span> state_space</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="29">
+<pre><code>False</code></pre>
+</div>
+</div>
+</section>
+<section id="x4-grid-world-게임-설명" class="level3">
+<h3 class="anchored" data-anchor-id="x4-grid-world-게임-설명">4. 4x4 Grid World 게임 설명</h3>
+<section id="a.-게임설명" class="level4">
+<h4 class="anchored" data-anchor-id="a.-게임설명">A. 게임설명</h4>
+<p><code>-</code> 문제설명: 4x4 그리드월드에서 상하좌우로 움직이는 에이전트가 목표점에 도달하도록 하는 게임</p>
+<ul>
+<li>백문이 불여일견: <a href="https://claude.ai/public/artifacts/76e13820-2b51-4e7e-a514-00190de17c45" class="uri">https://claude.ai/public/artifacts/76e13820-2b51-4e7e-a514-00190de17c45</a> (출처: 클로드)</li>
+</ul>
+<p><code>-</code> GridWorld에서 사용되는 주요변수</p>
+<ol type="1">
+<li><strong><code>State</code></strong>: 각 격자 셀이 하나의 상태이며, 에이전트는 이러한 상태 중 하나에 있을 수 있음.</li>
+<li><strong><code>Action</code></strong>: 에이전트는 현재상태에서 다음상태로 이동하기 위해 상,하,좌,우 중 하나의 행동을 취할 수 있음.</li>
+<li><strong><code>Reward</code></strong>: 에이전트가 현재상태에서 특정 action을 하면 얻어지는 보상.</li>
+<li><strong><code>Terminated</code></strong>: 하나의 에피소드가 종료되었음을 나타내는 상태.</li>
+</ol>
+</section>
+<section id="b.-시각화" class="level4">
+<h4 class="anchored" data-anchor-id="b.-시각화">B. 시각화</h4>
+<div id="c97e2b85-6385-4a1d-97b6-d45971fe3159" class="cell" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> show(states):</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>    fig <span class="op">=</span> plt.Figure()</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> fig.subplots()</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>    ax.matshow(np.zeros([<span class="dv">4</span>,<span class="dv">4</span>]), cmap<span class="op">=</span><span class="st">'bwr'</span>,alpha<span class="op">=</span><span class="fl">0.0</span>)</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>    sc <span class="op">=</span> ax.scatter(<span class="dv">0</span>, <span class="dv">0</span>, color<span class="op">=</span><span class="st">'red'</span>, s<span class="op">=</span><span class="dv">500</span>)  </span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="dv">0</span>, <span class="dv">0</span>, <span class="st">'start'</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>)</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="dv">3</span>, <span class="dv">3</span>, <span class="st">'end'</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>)</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Adding grid lines to the plot</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>    ax.set_xticks(np.arange(<span class="op">-</span><span class="fl">.5</span>, <span class="dv">4</span>, <span class="dv">1</span>), minor<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>    ax.set_yticks(np.arange(<span class="op">-</span><span class="fl">.5</span>, <span class="dv">4</span>, <span class="dv">1</span>), minor<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    ax.grid(which<span class="op">=</span><span class="st">'minor'</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'-'</span>, linewidth<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>    state_space <span class="op">=</span> gym.spaces.MultiDiscrete([<span class="dv">4</span>,<span class="dv">4</span>])</span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> update(t):</span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> states[t] <span class="kw">in</span> state_space:</span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a>            s1,s2 <span class="op">=</span> states[t]</span>
+<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a>            states[t] <span class="op">=</span> [s2,s1]</span>
+<span id="cb41-17"><a href="#cb41-17" aria-hidden="true" tabindex="-1"></a>            sc.set_offsets(states[t])</span>
+<span id="cb41-18"><a href="#cb41-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb41-19"><a href="#cb41-19" aria-hidden="true" tabindex="-1"></a>            s1,s2 <span class="op">=</span> states[t]</span>
+<span id="cb41-20"><a href="#cb41-20" aria-hidden="true" tabindex="-1"></a>            s1 <span class="op">=</span> s1 <span class="op">+</span> <span class="fl">0.5</span> <span class="cf">if</span> s1 <span class="op">&lt;</span> <span class="dv">0</span> <span class="cf">else</span> (s1 <span class="op">-</span> <span class="fl">0.5</span> <span class="cf">if</span> s1 <span class="op">&gt;</span> <span class="dv">3</span> <span class="cf">else</span> s1)</span>
+<span id="cb41-21"><a href="#cb41-21" aria-hidden="true" tabindex="-1"></a>            s2 <span class="op">=</span> s2 <span class="op">+</span> <span class="fl">0.5</span> <span class="cf">if</span> s2 <span class="op">&lt;</span> <span class="dv">0</span> <span class="cf">else</span> (s2 <span class="op">-</span> <span class="fl">0.5</span> <span class="cf">if</span> s2 <span class="op">&gt;</span> <span class="dv">3</span> <span class="cf">else</span> s2)</span>
+<span id="cb41-22"><a href="#cb41-22" aria-hidden="true" tabindex="-1"></a>            states[t] <span class="op">=</span> [s2,s1]       </span>
+<span id="cb41-23"><a href="#cb41-23" aria-hidden="true" tabindex="-1"></a>            sc.set_offsets(states[t])</span>
+<span id="cb41-24"><a href="#cb41-24" aria-hidden="true" tabindex="-1"></a>    ani <span class="op">=</span> FuncAnimation(fig,update,frames<span class="op">=</span><span class="bu">len</span>(states))</span>
+<span id="cb41-25"><a href="#cb41-25" aria-hidden="true" tabindex="-1"></a>    display(IPython.display.HTML(ani.to_jshtml()))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="dba5eab2-0ff5-451b-babd-c54cf0991aab" class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>show([[<span class="dv">0</span>,<span class="dv">0</span>],[<span class="dv">1</span>,<span class="dv">0</span>],[<span class="dv">2</span>,<span class="dv">0</span>],[<span class="dv">3</span>,<span class="dv">0</span>],[<span class="dv">4</span>,<span class="dv">0</span>]]) <span class="co"># show 사용방법</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+<script language="javascript">
+  function isInternetExplorer() {
+    ua = navigator.userAgent;
+    /* MSIE used to detect old browsers and Trident used to newer ones*/
+    return ua.indexOf("MSIE ") > -1 || ua.indexOf("Trident/") > -1;
+  }
+
+  /* Define the Animation class */
+  function Animation(frames, img_id, slider_id, interval, loop_select_id){
+    this.img_id = img_id;
+    this.slider_id = slider_id;
+    this.loop_select_id = loop_select_id;
+    this.interval = interval;
+    this.current_frame = 0;
+    this.direction = 0;
+    this.timer = null;
+    this.frames = new Array(frames.length);
+
+    for (var i=0; i<frames.length; i++)
+    {
+     this.frames[i] = new Image();
+     this.frames[i].src = frames[i];
+    }
+    var slider = document.getElementById(this.slider_id);
+    slider.max = this.frames.length - 1;
+    if (isInternetExplorer()) {
+        // switch from oninput to onchange because IE <= 11 does not conform
+        // with W3C specification. It ignores oninput and onchange behaves
+        // like oninput. In contrast, Microsoft Edge behaves correctly.
+        slider.setAttribute('onchange', slider.getAttribute('oninput'));
+        slider.setAttribute('oninput', null);
+    }
+    this.set_frame(this.current_frame);
+  }
+
+  Animation.prototype.get_loop_state = function(){
+    var button_group = document[this.loop_select_id].state;
+    for (var i = 0; i < button_group.length; i++) {
+        var button = button_group[i];
+        if (button.checked) {
+            return button.value;
+        }
+    }
+    return undefined;
+  }
+
+  Animation.prototype.set_frame = function(frame){
+    this.current_frame = frame;
+    document.getElementById(this.img_id).src =
+            this.frames[this.current_frame].src;
+    document.getElementById(this.slider_id).value = this.current_frame;
+  }
+
+  Animation.prototype.next_frame = function()
+  {
+    this.set_frame(Math.min(this.frames.length - 1, this.current_frame + 1));
+  }
+
+  Animation.prototype.previous_frame = function()
+  {
+    this.set_frame(Math.max(0, this.current_frame - 1));
+  }
+
+  Animation.prototype.first_frame = function()
+  {
+    this.set_frame(0);
+  }
+
+  Animation.prototype.last_frame = function()
+  {
+    this.set_frame(this.frames.length - 1);
+  }
+
+  Animation.prototype.slower = function()
+  {
+    this.interval /= 0.7;
+    if(this.direction > 0){this.play_animation();}
+    else if(this.direction < 0){this.reverse_animation();}
+  }
+
+  Animation.prototype.faster = function()
+  {
+    this.interval *= 0.7;
+    if(this.direction > 0){this.play_animation();}
+    else if(this.direction < 0){this.reverse_animation();}
+  }
+
+  Animation.prototype.anim_step_forward = function()
+  {
+    this.current_frame += 1;
+    if(this.current_frame < this.frames.length){
+      this.set_frame(this.current_frame);
+    }else{
+      var loop_state = this.get_loop_state();
+      if(loop_state == "loop"){
+        this.first_frame();
+      }else if(loop_state == "reflect"){
+        this.last_frame();
+        this.reverse_animation();
+      }else{
+        this.pause_animation();
+        this.last_frame();
+      }
+    }
+  }
+
+  Animation.prototype.anim_step_reverse = function()
+  {
+    this.current_frame -= 1;
+    if(this.current_frame >= 0){
+      this.set_frame(this.current_frame);
+    }else{
+      var loop_state = this.get_loop_state();
+      if(loop_state == "loop"){
+        this.last_frame();
+      }else if(loop_state == "reflect"){
+        this.first_frame();
+        this.play_animation();
+      }else{
+        this.pause_animation();
+        this.first_frame();
+      }
+    }
+  }
+
+  Animation.prototype.pause_animation = function()
+  {
+    this.direction = 0;
+    if (this.timer){
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  }
+
+  Animation.prototype.play_animation = function()
+  {
+    this.pause_animation();
+    this.direction = 1;
+    var t = this;
+    if (!this.timer) this.timer = setInterval(function() {
+        t.anim_step_forward();
+    }, this.interval);
+  }
+
+  Animation.prototype.reverse_animation = function()
+  {
+    this.pause_animation();
+    this.direction = -1;
+    var t = this;
+    if (!this.timer) this.timer = setInterval(function() {
+        t.anim_step_reverse();
+    }, this.interval);
+  }
+</script>
+
+<style>
+.animation {
+    display: inline-block;
+    text-align: center;
+}
+input[type=range].anim-slider {
+    width: 374px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.anim-buttons {
+    margin: 8px 0px;
+}
+.anim-buttons button {
+    padding: 0;
+    width: 36px;
+}
+.anim-state label {
+    margin-right: 8px;
+}
+.anim-state input {
+    margin: 0;
+    vertical-align: middle;
+}
+</style>
+
+<div class="animation">
+  <img id="_anim_imgec195d31c1d84250879aa0e3715286bb">
+  <div class="anim-controls">
+    <input id="_anim_sliderec195d31c1d84250879aa0e3715286bb" type="range" class="anim-slider" name="points" min="0" max="1" step="1" value="0" oninput="animec195d31c1d84250879aa0e3715286bb.set_frame(parseInt(this.value));">
+    <div class="anim-buttons">
+      <button title="Decrease speed" aria-label="Decrease speed" onclick="animec195d31c1d84250879aa0e3715286bb.slower()">
+          <i class="fa fa-minus"></i></button>
+      <button title="First frame" aria-label="First frame" onclick="animec195d31c1d84250879aa0e3715286bb.first_frame()">
+        <i class="fa fa-fast-backward"></i></button>
+      <button title="Previous frame" aria-label="Previous frame" onclick="animec195d31c1d84250879aa0e3715286bb.previous_frame()">
+          <i class="fa fa-step-backward"></i></button>
+      <button title="Play backwards" aria-label="Play backwards" onclick="animec195d31c1d84250879aa0e3715286bb.reverse_animation()">
+          <i class="fa fa-play fa-flip-horizontal"></i></button>
+      <button title="Pause" aria-label="Pause" onclick="animec195d31c1d84250879aa0e3715286bb.pause_animation()">
+          <i class="fa fa-pause"></i></button>
+      <button title="Play" aria-label="Play" onclick="animec195d31c1d84250879aa0e3715286bb.play_animation()">
+          <i class="fa fa-play"></i></button>
+      <button title="Next frame" aria-label="Next frame" onclick="animec195d31c1d84250879aa0e3715286bb.next_frame()">
+          <i class="fa fa-step-forward"></i></button>
+      <button title="Last frame" aria-label="Last frame" onclick="animec195d31c1d84250879aa0e3715286bb.last_frame()">
+          <i class="fa fa-fast-forward"></i></button>
+      <button title="Increase speed" aria-label="Increase speed" onclick="animec195d31c1d84250879aa0e3715286bb.faster()">
+          <i class="fa fa-plus"></i></button>
+    </div>
+    <form title="Repetition mode" aria-label="Repetition mode" action="#n" name="_anim_loop_selectec195d31c1d84250879aa0e3715286bb" class="anim-state">
+      <input type="radio" name="state" value="once" id="_anim_radio1_ec195d31c1d84250879aa0e3715286bb">
+      <label for="_anim_radio1_ec195d31c1d84250879aa0e3715286bb">Once</label>
+      <input type="radio" name="state" value="loop" id="_anim_radio2_ec195d31c1d84250879aa0e3715286bb" checked="">
+      <label for="_anim_radio2_ec195d31c1d84250879aa0e3715286bb">Loop</label>
+      <input type="radio" name="state" value="reflect" id="_anim_radio3_ec195d31c1d84250879aa0e3715286bb">
+      <label for="_anim_radio3_ec195d31c1d84250879aa0e3715286bb">Reflect</label>
+    </form>
+  </div>
+</div>
+
+
+<script language="javascript">
+  /* Instantiate the Animation class. */
+  /* The IDs given should match those used in the template above. */
+  (function() {
+    var img_id = "_anim_imgec195d31c1d84250879aa0e3715286bb";
+    var slider_id = "_anim_sliderec195d31c1d84250879aa0e3715286bb";
+    var loop_select_id = "_anim_loop_selectec195d31c1d84250879aa0e3715286bb";
+    var frames = new Array(5);
+    
+  frames[0] = "data:image/png;base64,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\
+3wAAAABJRU5ErkJggg==\
+"
+  frames[1] = "data:image/png;base64,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\
+"
+  frames[2] = "data:image/png;base64,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\
+AEAyApBJqb+/P+69995DfpyNGzfGD3/4w8MwEQAcPQRgcnfddVfMmzcvFixYEEuWLIn+/v6yRzos\
+/vznP8edd955yI/z61//Ou6///7DMBEAHD0EYGLr1q2LO++8Mx5//PHYsGFDLFu2LD784Q+XPdYB\
++8pXvhKnnXZaLFq0KM4+++xYtWpVfPrTn47169fHwoULx48Erlu3Ls4888yYN29ezJ07N1auXBmv\
+vPJKRIwdMTzjjDPiO9/5TixatCiuvvrq+OhHPxrXXXddPPzww7Fw4cL46U9/WubTBIDDprnsASjP\
+HXfcETfeeGN0dnZGRMTHPvax+NrXvjYeTo1g8+bN8f3vfz9++9vfRmtra9Tr9ahUKnHRRRfFF77w\
+hXj88cfHbzt16tT40Y9+FCeccEK88sorccEFF8Q999wTn/70p2Pfvn3R19cXmzZtiqeeemr8Pvfc\
+c0/89Kc/je9+97tlPD0AOCIcAUzsZz/7WSxevHjCtnPOOSd+8pOflDTRgavX61Gv12N0dDQiIiqV\
+yhve9swzz4wTTjghIiKam5vj/PPPnxB7L730UnzmM585sgMDwFFAACa1c+fOaG5ujre+9a0Tts+a\
+NSs2b978mtsPDQ3F4ODghMvR4O1vf3tccsklsXDhwvjmN78Zw8PDb3jb/v7+WLVqVZx55pnx7ne/\
+O770pS/F7t27x38+derU6OrqKmJsACiVAExqx44d0d7e/prt7e3tE6LoVWvXro3Ozs7xy6xZs4oY\
+c7987nOfi0cffTSeeuqp+OAHPxh79ux5zW327dsXixcvjunTp8cDDzwQzzzzTFx99dUTbvOWt7yl\
+qJEBoFQCMKm2trbYu3fva7bv2bMnjjnmmNdsX7NmTdRqtfFLX19fEWPutxkzZsS3vvWteNvb3hY/\
++tGPYsqUKRN+vmHDhnjLW94S1157bcycOTMixj7i5c388+MAwGQgAJOaPn167NmzJ3bu3Dlhe19f\
+X/T29r7m9m1tbdHR0THhcjTYvXv3+GnfV8N05syZMW3atNiyZUuMjIxERMSJJ54YL774Yrz44osR\
+EfHLX/4yHnrooTd9/GnTpsULL7xw5J4AAJRAACZVqVTife97Xzz22GMTtj/66KNx9tlnlzTVgXvi\
+iSfine98Z5x22mnx/ve/P1asWBFnnXVWvPvd7473vve9MXfu3Fi2bFmcdNJJsXbt2jj33HNj3rx5\
+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\
+fX0FTwpQnD179sTs2bNj/fr1Ey4vvPBCRMT4kb9/VK/XI2Is9l798z96NR7haCAAiYiIadOmxde/\
+/vV44IEHolarvebnbW1t0dHRMeECMFm94x3viOeffz7+9re/HfB9jzvuuGhtbZ3wsVr79u2LJ554\
+4nCOCIdEADJuaGgohoeHY2RkpOxRAEo1ffr0OO+88+LKK6+MoaGhiBg7KviXv/xlv+6/YsWKuOaa\
+a2JkZCTq9Xpcc8013gXMUUUAJjU8PBxbtmwZv75jx4649NJL4+KLL47jjz++xMkAjg7f/e534/jj\
+j48FCxbEwoULY/HixfGHP/whWlpaXvNmudbW1gnbrrnmmmhvb485c+bE6aefHq2trfGRj3wkWlpa\
+in4a8Lqayx6Acrz00kvxoQ99KHbt2hXt7e3R1NQUl1xyyRu+CQQgm2OPPTaq1err/uzZZ5+dcP2k\
+k06KP/3pT+PXW1tb4/bbbz+i88GhEIBJzZw5M5588smyxwAASuAUMABAMgIQACAZAQgAkIwABABI\
+RgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEAkhGAAADJCEAA\
+gGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwA\
+BABIRgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEAkqnU6/V6\
+2UPQeGq1Whx33HEREdHd3V3uMEls27Yt6vV6VCqV6OrqKnucSc96F8t6F29gYCAiInbs2BGdnZ0l\
+T0PRBCAHpFqtRrVajeHh4Xj22WfLHgeAQ9TX1xe9vb1lj0HBBCAHZXR0NN71rnfFk08+GZVKpexx\
+9tvg4GDMmjUr+vr6oqOjo+xxDth73/ve+PWvf132GAekkdfceherEdc7onHXvF6vxxlnnBGbNm2K\
+piavCMumuewBaExNTU3R2trasKcNOjo6Guof6ldNmTKlIeeOaMw1t97FauT1jmjMNW9tbRV/Sfm/\
+zkG74ooryh4hHWteLOtdLOtdPGuel1PApDI4OBidnZ1Rq9Ua7jf1RmXNi2W9i2fNaUSOAJJKW1tb\
+XH/99dHW1lb2KGlY82JZ7+JZcxqRI4AAAMk4AggAkIwABABIRgACACQjAAEAkhGAAADJCEAAgGQE\
+IABAMgIQACAZAQgAkIwABABIRgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwABABI\
+RgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEAkhGAAADJCEAA\
+gGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwA\
+BABIRgACACQjAAEAkhGAAADJCEAAgGT+D0KOjXglyGDMAAAAAElFTkSuQmCC\
+"
+  frames[3] = "data:image/png;base64,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\
+ACAZAcik1NvbG3fddde7fpz169fHT37ykwMwEQC8dwjA5O64446YO3duzJ8/PxYvXhy9vb1lj3RA\
+/PnPf47bb7/9XT/Or3/967jvvvsOwEQA8N4hABNbs2ZN3H777fHkk0/GunXrYsmSJfGpT32q7LH2\
+2de//vU49thjY+HChXHqqafGihUr4pJLLom1a9fGggULRncC16xZEyeddFLMnTs35syZE8uXL4/X\
+X389IkZ2DI8//vj44Q9/GAsXLoyrrroqPvOZz8S1114bDz30UCxYsCB+9rOflfljAsAB01j2AJTn\
+tttuixtuuCHa29sjIuK8886Lb37zm6PhNBFs3Lgx7r333vjtb38bzc3NUa/Xo1KpxDnnnBNf/vKX\
+48knnxy97dSpU+OnP/1pHHbYYfH666/HWWedFXfeeWdccsklsWfPnujp6YkNGzbEM888M3qfO++8\
+M372s5/F3XffXcaPBwDjwg5gYo899lgsWrRozHWnnXZaPProoyVNtO/q9XrU6/UYHh6OiIhKpfK2\
+tz3ppJPisMMOi4iIxsbGOPPMM8fE3iuvvBKf//znx3dgAHgPEIBJbd++PRobG+P973//mOtnzZoV\
+GzdufNPtBwYGor+/f8zlveBDH/pQXHDBBbFgwYL47ne/G4ODg297297e3lixYkWcdNJJccwxx8RX\
+v/rV2Llz5+j3p06dGh0dHUWMDQClEoBJbdu2LVpbW990fWtr65goesPq1aujvb199DJr1qwixtwr\
+X/ziF+Pxxx+PZ555Jj7xiU/Erl273nSbPXv2xKJFi2L69Olx//33x3PPPRdXXXXVmNu8733vK2pk\
+ACiVAEyqpaUldu/e/abrd+3aFQcddNCbrl+1alXUarXRS09PTxFj7rUZM2bE9773vfjABz4QP/3p\
+T2PKlCljvr9u3bp43/veF9dcc03MnDkzIkbe4uWd/PPjAMBkIACTmj59euzatSu2b98+5vqenp7o\
+7u5+0+1bWlqira1tzOW9YOfOnaOnfd8I05kzZ8a0adNi06ZNMTQ0FBERhx9+eLz88svx8ssvR0TE\
+L3/5y3jwwQff8fGnTZsWL7300vj9AABQAgGYVKVSiZNPPjmeeOKJMdc//vjjceqpp5Y01b576qmn\
+4iMf+Ugce+yx8bGPfSyWLVsWp5xyShxzzDFx4oknxpw5c2LJkiXxwQ9+MFavXh2nn356zJ07N1av\
+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\
+"
+  frames[4] = "data:image/png;base64,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\
+7Y177733C3+eVatWxe9+97s9sAgAvjwEYHJ33XVXzJw5M2bPnh3z58+P3t7esiftEW+88Ubceeed\
+X/jzvPTSS/Hggw/ugUUA8OUhABNbvnx53HnnnfH888/HypUrY+HChXHWWWeVPWu3/fznP4/p06fH\
+0UcfHSeddFIsWrQoLrroolixYkXMmTNn5Erg8uXL4/jjj4+ZM2fGjBkz4rLLLosPP/wwInZeMTzm\
+mGPiN7/5TRx99NFx1VVXxfe+971YunRpPP744zFnzpx4+umny/wyAWCPaSx7AOW544474oYbboi2\
+traIiDjnnHPiF7/4xUg4jQVr166NBx54IP785z9Hc3Nz1Ov1qFQqceaZZ8ZPf/rTeP7550ceO2nS\
+pHjsscfiwAMPjA8//DBOO+20uOeee+Kiiy6KHTt2RE9PT6xevTpeeeWVkY+555574umnn4777ruv\
+jC8PAPYKVwATe+aZZ2LevHmj7jv55JPjqaeeKmnR7qvX61Gv12N4eDgiIiqVyqc+9vjjj48DDzww\
+IiIaGxvj1FNPHRV777zzTvzwhz/cu4MB4EtAACa1ZcuWaGxsjH333XfU/dOmTYu1a9d+7PEDAwPR\
+398/6vZl8LWvfS3OP//8mDNnTvzyl7+MwcHBT31sb29vLFq0KI4//vg46qij4mc/+1ls27Zt5P2T\
+Jk2K9vb2ImYDQKkEYFKbN2+OlpaWj93f0tIyKoo+smzZsmhraxu5TZs2rYiZu+THP/5xPPvss/HK\
+K6/Et7/97di+ffvHHrNjx46YN29eTJkyJR5++OF4/fXX46qrrhr1mH322aeoyQBQKgGYVLVajQ8+\
++OBj92/fvj0mTpz4sfuXLFkStVpt5NbT01PEzF128MEHx69+9av4yle+Eo899lhMmDBh1PtXrlwZ\
+++yzT1xzzTUxderUiNj5I14+y79+HgAYDwRgUlOmTInt27fHli1bRt3f09MTXV1dH3t8tVqN1tbW\
+Ubcvg23bto287PtRmE6dOjUmT54c69ati6GhoYiIOOigg+Ltt9+Ot99+OyIi/vjHP8ajjz76mZ9/\
+8uTJ8dZbb+29LwAASiAAk6pUKnHCCSfEc889N+r+Z599Nk466aSSVu2+F154Ib7+9a/H9OnT45vf\
+/GZceumlceKJJ8ZRRx0Vxx13XMyYMSMWLlwYX/3qV2PZsmVxyimnxMyZM2PZsmVxyy23jARiU1PT\
+J74kfvLJJ0dTU1PMmjUrlixZUvSXBwB7RaVer9fLHkE5Hn744bj55pvj97//fbS2tsaDDz4YN910\
+U6xYsSIaGv7vPxv09/dHW1tbdHR0xPr16wtanFtXV1f09vbG1KlTY926dWXPGfecd7Gcd/E6Ozuj\
+r68varXal+ZVHYrj5wAmduaZZ0ZPT0+ceOKJ0dDQEO3t7fHII498ZvwBAGObAEzuyiuvjCuvvLLs\
+GQBAgVzqAQBIRgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEA\
+khGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQ\
+ACAZAQgAkIwABABIRgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwABABIRgACACQj\
+AAEAkhGAAADJCEAAgGQEIABAMpV6vV4vewRjT39/f7S1tUWlUonOzs6y56TQ19cXw8PD0dDQEB0d\
+HWXPGfecd7Gcd/HWr18f9Xo9arVatLa2lj2HgglAdkt3d3d0d3fH0NBQrF69uuw5AHxBAjAnAcjn\
+4gpg8VwhKZbzLpbzLp4rgLk1lj2Asa29vT3WrVtX9owUurq6ore3Nzo6Opx5AZx3sZx38To7O6Ov\
+r6/sGZTEN4EAACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEAkhGA\
+AADJCEAAgGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZ\
+AQgAkIwABABIRgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEA\
+khGAAADJCEAAgGQEIABAMgIQACAZAUjcfffdUa1W48033yx7CgBQgMayB1Cua665Jv70pz/FpEmT\
+4sMPPyx7DgBQAFcAExseHo6Ojo549NFHo6Wlpew5AEBBXAFMrKGhIS6//PKyZwAABROA7JKBgYEY\
+GBgYebu/v7/ENQDAF+ElYHbJsmXLoq2tbeQ2bdq0sicBAJ+TAGSXLFmyJGq12sitp6en7EkAwOfk\
+JWB2SbVajWq1WvYMAGAPcAUQACAZAQgAkIwAJCIimpubo6mpqewZAEAB/B1AIiJi9erVZU8AAAri\
+CiAAQDICEAAgGQEIAJCMAAQASEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAgGQEIAJCMAAQA\
+SEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAgGQEIAJCMAAQASEYAAgAkIwABAJIRgAAAyQhA\
+AIBkBCAAQDICEAAgGQEIAJCMAAQASEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAgGQEIAJCM\
+AAQASEYAAgAkIwABAJKp1Ov1etkjGHv6+/ujra0tKpVKdHZ2lj0nhb6+vhgeHo6Ghobo6Ogoe864\
+57yL5byLt379+qjX61Gr1aK1tbXsORRMALJburu7o7u7O4aGhmL16tVlzwHgCxKAOQlAPhdXAIvn\
+CkmxnHexnHfxXAHMrbHsAYxt7e3tsW7durJnpNDV1RW9vb3R0dHhzAvgvIvlvIvX2dkZfX19Zc+g\
+JL4JBAAgGQEIAJCMAAQASEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAgGQEIAJCMAAQASEYA\
+AgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAgGQEIAJCMAAQASEYAAgAkIwABAJIRgAAAyQhAAIBk\
+BCAAQDICEAAgGQEIAJCMAAQASEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAgGQEIAJCMAAQA\
+SEYAAgAkIwABAJIRgAAAyQhAAIBkBGBijz/+eJxyyikxa9asmDFjRlx22WWxbdu2smcBAHuZAExs\
+v/32i3vvvTdeffXVWLFiRbz//vuxdOnSsmcBAHtZY9kDKM+8efNGft3Y2BiLFy+OCy64oMRFAEAR\
+XAFkxMaNG6OlpaXsGQDAXuYKICNuv/32T70CODAwEAMDAyNv9/f3FzULANjDXAEkIiKWL18eK1as\
+iIsvvvgT379s2bJoa2sbuU2bNq3ghQDAniIAiZ6enrjkkkvi/vvvj2q1+omPWbJkSdRqtZFbT09P\
+wSsBgD3FS8DJbd26Nc4444y46aab4thjj/3Ux1Wr1U+NQwBgbHEFMLGhoaE477zzYv78+bFgwYKy\
+5wAABRGAiS1atCgmTpwYN954Y9lTAIACeQk4qU2bNkV3d3ccccQRMXfu3JH7K5VKPPHEE3HwwQeX\
+uA4A2JsEYFKTJk2Ker1e9gwAoAReAgYASEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAgGQEI\
+AJCMAAQASEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAgGQEIAJCMAAQASEYAAgAkIwABAJIR\
+gAAAyQhAAIBkBCAAQDICEAAgGQEIAJCMAAQASEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAg\
+GQEIAJCMAAQASEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDKVer1eL3sEY09/f3+0tbVFpVKJzs7O\
+suek0NfXF8PDw9HQ0BAdHR1lzxn3nHexnHfx1q9fH/V6PWq1WrS2tpY9h4IJQHZLd3d3dHd3x9DQ\
+UKxevbrsOQB8QQIwJwHI5+IKYPFcISmW8y6W8y6eK4C5NZY9gLGtvb091q1bV/aMFLq6uqK3tzc6\
+OjqceQGcd7Gcd/E6Ozujr6+v7BmUxDeBAAAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAgGQEIAJCM\
+AAQASEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAgGQEIAJCMAAQASEYAAgAkIwABAJIRgAAA\
+yQhAAIBkBCAAQDICEAAgGQEIAJCMAAQASEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAgGQEI\
+AJCMAAQASEYAAgAkIwABAJIRgAAAyQhAAIBkBCAAQDICEAAKcPHFF8cf/vCHsmdARAjA1G677baY\
+NWtWzJ49O4488shYsGBB9Pb2lj0LYFzasWNH7Nixo+wZEBECMLXTTjstXnzxxVi5cmW89tprceih\
+h8app55a9iwAYC8TgIkddthh0dLSEhERjY2Ncf3118fatWtj/fr1JS8DKN8HH3wQl156aRx++OFx\
+xBFHxCWXXBLbt2+Pv//97/Gtb30rrrrqqjjyyCNj+vTpcfbZZ8emTZtGPnbLli3x/e9/P2bMmBHT\
+p0+PK664IgYHB0v8amA0AciIbdu2RaVSicmTJ5c9BaB0ixcvjoMPPjjeeOON+Otf/xrVajVuvPHG\
+qFQq8cILL8Tw8HC8/vrrsWrVqjjwwAPjhhtuGPWx9Xo9Vq5cGatWrYpDDjkkHnrooRK/GhhNABIR\
+EatWrYpzzz03rr322qhWqx97/8DAQPT394+6AYxXW7ZsiUceeSSuu+66qFQqUalU4ic/+Uk88MAD\
+ERFRqVRGYjAi4sILL4znnntu5ON/+9vfxs033xwTJkyIiIgf/ehHMXXq1OK/EPgUAjC5xYsXR3t7\
+e8yYMSM6Oztj0aJFn/i4ZcuWRVtb28ht2rRpBS8FKM6aNWvivffei6OPPjrmzJkTc+bMifnz58fw\
+8HBERBx00EGj/rA8ZcqU2LhxY0REbNy4MZqamqKzs3Pk/Q0NDTF37txivwj4PwjA5G655ZbYsGFD\
+vPvuu9HS0hILFy78xMctWbIkarXayK2np6fgpQDF2b59exxyyCGxYsWKUbe33norImLkyt8/q9fr\
+EbEz9j769T/7KB7hy0AAEhERkydPjltvvTUefvjhqNVqH3t/tVqN1tbWUTeA8erwww+PN998M957\
+773d/tj9998/mpubR/1YrR07dsQLL7ywJyfCFyIAGTEwMBCDg4MxNDRU9hSAUk2ZMiW+853vxBVX\
+XBEDAwMRsfOq4D/+8Y9d+vhLL700rr766hgaGop6vR5XX3217wLmS0UAJjU4OBjr1q0beXvz5s1x\
+4YUXxtlnnx0HHHBAicsAvhzuu+++OOCAA2L27NkxZ86cmDdvXvzlL3+Jpqamj32zXHNz86j7rr76\
+6mhpaYkjjjgi5s6dG83NzfHd7343mpqaiv4y4BM1lj2Acrzzzjtx+umnx9atW6OlpSUaGhri/PPP\
+/9RvAgHIZr/99ovu7u5PfN+aNWtGvf3Vr341/va3v4283dzcHLfffvte3QdfhABMaurUqfHyyy+X\
+PQMAKIGXgAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEAkhGAAADJCEAA\
+gGQEIABAMgIQACAZAQgAkIwABABIRgACACQjAAEAkhGAAADJCEAAgGQEIABAMgIQACAZAQgAkIwA\
+BABIprHsAbBX7dgR8eqrES+/HPHKKxF9fREDAxHVakRHR8TRR0ccc0zErFkRTU1lrwWAQghAxqe3\
+3oq4446I22+P2LRp531NTTuD8CNNTTsfExExaVLEZZdFXHppxCGHFL8XAArkJWDGl1ot4uKLIw47\
+LOI///P/x1/E6Pj717c3bdr5+MMO2/nx/f3F7AWAEghAxo8nn4w48siIX/86ol6PGBravY8fGtr5\
+cb/+9c7P8+STe2cnAJRMADI+/Nd/Rfz7v0e8/fbuh9+/GhqK+Mc/dn6+7u49sw8AvkQEIGNfd3fE\
+D3+489fDw3vmc370ea64QgQCMO4IQMa2J5/cGWl70xVXeDkYgHFFADJ21WoRF14Y0bCX/zNuaIj4\
+j//wjSEAjBsCkLHrxz+OeOedPfey76cZHt75dwt/9KO9+zwAUBAByNj05psR//M/X/wbPnbV0NDO\
+53vrrWKeDwD2IgHI2HTnnXv/pd9/1dCw83kBYIwTgIw9O3bs/Bc+irr695GhoYj//u+P/0BpABhj\
+BCBjz6uvjv4XPoq0aVPE//5vOc8NAHuIAGTsefnl3M8PAF+QAGTseeWViKamcp67qUkAAjDmVer1\
+er3sEYw9tVot9t9//4iI6OjoKPbJN26MGBgo9jn/WbUaccABhT/thg0bol6vR6VSifb29sKfPxvn\
+XSznXby+vr6IiNi8eXO0tbWVvIaiCUB2S3d3d3R3d8fg4GCsWbOm7DkAfEE9PT3R1dVV9gwKJgD5\
+XIaHh+Mb3/hGvPzyy1GpVMqes8v6+/tj2rRp0dPTE62trWXP2W3HHXdcvPTSS2XP2C1j+cydd7HG\
+4nlHjN0zr9frccwxx8Tq1aujoegfq0XpGssewNjU0NAQzc3NY/Zlg9bW1jH1G/VHJkyYMCZ3R4zN\
+M3fexRrL5x0xNs+8ublZ/CXl/3U+tx/84AdlT0jHmRfLeRfLeRfPmeflJWBS6e/vj7a2tqjVamPu\
+T+pjlTMvlvMunjNnLHIFkFSq1Wpce+21Ua1Wy56ShjMvlvMunjNnLHIFEAAgGVcAAQCSEYAAAMkI\
+QACAZAQgAEAyAhAAIBkBCACQjAAEAEhGAAIAJCMAAQCSEYAAAMkIQACAZAQgAEAyAhAAIBkBCACQ\
+jAAEAEhGAAIAJCMAAQCSEYAAAMkIQACAZAQgAEAyAhAAIBkBCACQjAAEAEhGAAIAJCMAAQCSEYAA\
+AMkIQACAZAQgAEAyAhAAIBkBCACQjAAEAEhGAAIAJCMAAQCSEYAAAMkIQACAZAQgAEAyAhAAIBkB\
+CACQjAAEAEhGAAIAJCMAAQCSEYAAAMkIQACAZAQgAEAyAhAAIBkBCACQzP8D2Cg7W9KtVosAAAAA\
+SUVORK5CYII=\
+"
+
+
+    /* set a timeout to make sure all the above elements are created before
+       the object is initialized. */
+    setTimeout(function() {
+        animec195d31c1d84250879aa0e3715286bb = new Animation(frames, img_id, slider_id, 200.0,
+                                 loop_select_id);
+    }, 0);
+  })()
+</script>
+</div>
+</div>
+</section>
+</section>
+<section id="x4-grid-world-환경-구현" class="level3">
+<h3 class="anchored" data-anchor-id="x4-grid-world-환경-구현">5. 4x4 Grid World 환경 구현</h3>
+<div id="7345279f-6bc4-4799-9231-da51ab9a28bb" class="cell" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> GridWorld:</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.a2d <span class="op">=</span> {</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>            <span class="dv">0</span>: np.array([<span class="dv">0</span>,<span class="dv">1</span>]), <span class="co"># →</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>            <span class="dv">1</span>: np.array([<span class="dv">0</span>,<span class="op">-</span><span class="dv">1</span>]), <span class="co"># ←  </span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>            <span class="dv">2</span>: np.array([<span class="dv">1</span>,<span class="dv">0</span>]),  <span class="co"># ↓</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>            <span class="dv">3</span>: np.array([<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>])  <span class="co"># ↑</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.state <span class="op">=</span> np.array([<span class="dv">0</span>,<span class="dv">0</span>])</span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.state_space <span class="op">=</span> gym.spaces.MultiDiscrete([<span class="dv">4</span>,<span class="dv">4</span>])</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.terminated <span class="op">=</span> <span class="va">False</span> </span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.reward <span class="op">=</span> <span class="va">None</span> </span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> reset(<span class="va">self</span>):</span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.state <span class="op">=</span> np.array([<span class="dv">0</span>,<span class="dv">0</span>])</span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.reward <span class="op">=</span> <span class="va">None</span> </span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.terminated <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> step(<span class="va">self</span>,action):</span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.state <span class="op">=</span> <span class="va">self</span>.state <span class="op">+</span> <span class="va">self</span>.a2d[action]</span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>        s1,s2 <span class="op">=</span> <span class="va">self</span>.state </span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (s1<span class="op">==</span><span class="dv">3</span>) <span class="kw">and</span> (s2<span class="op">==</span><span class="dv">3</span>):</span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.reward <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.terminated <span class="op">=</span> <span class="va">True</span> </span>
+<span id="cb43-23"><a href="#cb43-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> <span class="va">self</span>.state <span class="kw">in</span> <span class="va">self</span>.state_space:</span>
+<span id="cb43-24"><a href="#cb43-24" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.reward <span class="op">=</span> <span class="op">-</span><span class="dv">1</span> </span>
+<span id="cb43-25"><a href="#cb43-25" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.terminated <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb43-26"><a href="#cb43-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>: </span>
+<span id="cb43-27"><a href="#cb43-27" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.reward <span class="op">=</span> <span class="op">-</span><span class="dv">10</span> </span>
+<span id="cb43-28"><a href="#cb43-28" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.terminated <span class="op">=</span> <span class="va">True</span> </span>
+<span id="cb43-29"><a href="#cb43-29" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(</span>
+<span id="cb43-30"><a href="#cb43-30" aria-hidden="true" tabindex="-1"></a>            <span class="ss">f"action = </span><span class="sc">{</span>action<span class="sc">}</span><span class="ch">\t</span><span class="ss">"</span></span>
+<span id="cb43-31"><a href="#cb43-31" aria-hidden="true" tabindex="-1"></a>            <span class="ss">f"state = </span><span class="sc">{</span><span class="va">self</span><span class="sc">.</span>state <span class="op">-</span> <span class="va">self</span><span class="sc">.</span>a2d[action]<span class="sc">}</span><span class="ss"> -&gt; </span><span class="sc">{</span><span class="va">self</span><span class="sc">.</span>state<span class="sc">}</span><span class="ch">\t</span><span class="ss">"</span></span>
+<span id="cb43-32"><a href="#cb43-32" aria-hidden="true" tabindex="-1"></a>            <span class="ss">f"reward = </span><span class="sc">{</span><span class="va">self</span><span class="sc">.</span>reward<span class="sc">}</span><span class="ch">\t</span><span class="ss">"</span></span>
+<span id="cb43-33"><a href="#cb43-33" aria-hidden="true" tabindex="-1"></a>            <span class="ss">f"termiated = </span><span class="sc">{</span><span class="va">self</span><span class="sc">.</span>terminated<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb43-34"><a href="#cb43-34" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb43-35"><a href="#cb43-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.state, <span class="va">self</span>.reward, <span class="va">self</span>.terminated</span>
+<span id="cb43-36"><a href="#cb43-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> reset(<span class="va">self</span>):</span>
+<span id="cb43-37"><a href="#cb43-37" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.terminated <span class="op">=</span> <span class="va">False</span> </span>
+<span id="cb43-38"><a href="#cb43-38" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.state <span class="op">=</span> np.array([<span class="dv">0</span>,<span class="dv">0</span>])</span>
+<span id="cb43-39"><a href="#cb43-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.state</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="9efa7afb-eaf8-4965-83c5-36d33fdb767e" class="cell" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> GridWorld()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="ad951a24-d717-40c4-922d-e8243ad15b75" class="cell" data-execution_count="39">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">10</span>):</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>    action <span class="op">=</span> action_space.sample()</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    env.step(action)</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> env.terminated:</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>        env.state <span class="op">=</span> env.reset()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>action = 0  state = [3 2] -&gt; [3 3]  reward = 100    termiated = True
+action = 3  state = [0 0] -&gt; [-1  0]    reward = -10    termiated = True
+action = 2  state = [0 0] -&gt; [1 0]  reward = -1 termiated = False
+action = 0  state = [1 0] -&gt; [1 1]  reward = -1 termiated = False
+action = 0  state = [1 1] -&gt; [1 2]  reward = -1 termiated = False
+action = 0  state = [1 2] -&gt; [1 3]  reward = -1 termiated = False
+action = 3  state = [1 3] -&gt; [0 3]  reward = -1 termiated = False
+action = 3  state = [0 3] -&gt; [-1  3]    reward = -10    termiated = True
+action = 1  state = [0 0] -&gt; [ 0 -1]    reward = -10    termiated = True
+action = 2  state = [0 0] -&gt; [1 0]  reward = -1 termiated = False</code></pre>
+</div>
+</div>
+</section>
+<section id="에이전트-leftrightarrow-환경-상호작용-구현" class="level3">
+<h3 class="anchored" data-anchor-id="에이전트-leftrightarrow-환경-상호작용-구현">6. “에이전트 <span class="math inline">\(\Leftrightarrow\)</span> 환경” 상호작용 구현</h3>
+<p><code>-</code> 우리가 구현하고 싶은 기능</p>
+<ul>
+<li><code>.act()</code>: 액션을 결정 –&gt; 여기서는 그냥 랜덤액션</li>
+<li><code>.save_experience()</code>: 데이터를 저장 –&gt; 여기에 일단 초점을 맞추자</li>
+<li><code>.learn()</code>: 데이터로에서 학습 –&gt; 패스</li>
+</ul>
+<div id="7634260f-dd51-4bbc-9ab4-48bc437f1976" class="cell" data-execution_count="41">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> RandomAgent:</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.n_experiences <span class="op">=</span> <span class="dv">0</span> </span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.action_space <span class="op">=</span> gym.spaces.Discrete(<span class="dv">4</span>)</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>        <span class="co">#---#</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.state <span class="op">=</span> <span class="va">None</span> </span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.action <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.reward <span class="op">=</span> <span class="va">None</span> </span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.next_state <span class="op">=</span> <span class="va">None</span> </span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.termiated <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>        <span class="co">#---#</span></span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.states <span class="op">=</span> collections.deque(maxlen<span class="op">=</span><span class="dv">500</span>)</span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.actions <span class="op">=</span> collections.deque(maxlen<span class="op">=</span><span class="dv">500</span>)</span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.rewards <span class="op">=</span> collections.deque(maxlen<span class="op">=</span><span class="dv">500</span>)</span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.next_states <span class="op">=</span> collections.deque(maxlen<span class="op">=</span><span class="dv">500</span>)</span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.terminations <span class="op">=</span> collections.deque(maxlen<span class="op">=</span><span class="dv">500</span>)</span>
+<span id="cb47-17"><a href="#cb47-17" aria-hidden="true" tabindex="-1"></a>        <span class="co">#---#</span></span>
+<span id="cb47-18"><a href="#cb47-18" aria-hidden="true" tabindex="-1"></a>        <span class="co">#self.q_table = None </span></span>
+<span id="cb47-19"><a href="#cb47-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> act(<span class="va">self</span>):</span>
+<span id="cb47-20"><a href="#cb47-20" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.action <span class="op">=</span> <span class="va">self</span>.action_space.sample()</span>
+<span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> save_experience(<span class="va">self</span>):</span>
+<span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.states.append(<span class="va">self</span>.state)</span>
+<span id="cb47-23"><a href="#cb47-23" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.actions.append(<span class="va">self</span>.action)        </span>
+<span id="cb47-24"><a href="#cb47-24" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.rewards.append(<span class="va">self</span>.reward)</span>
+<span id="cb47-25"><a href="#cb47-25" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.next_states.append(<span class="va">self</span>.next_state)</span>
+<span id="cb47-26"><a href="#cb47-26" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.terminations.append(<span class="va">self</span>.termiated)</span>
+<span id="cb47-27"><a href="#cb47-27" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.n_experiences <span class="op">=</span> <span class="va">self</span>.n_experiences <span class="op">+</span> <span class="dv">1</span> </span>
+<span id="cb47-28"><a href="#cb47-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> learn(<span class="va">self</span>):</span>
+<span id="cb47-29"><a href="#cb47-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="90937ada-1097-4352-a660-f37d8d873097" class="cell" data-execution_count="42">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>player <span class="op">=</span> RandomAgent()</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> GridWorld()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="434b27ba-3327-47a1-80af-792c9edb48d3" class="cell" data-execution_count="43">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">50</span>):</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># step1 : agent --&gt; env </span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>    player.act()</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># step2: agnet &lt;-- env </span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>    player.next_state, player.reward, player.terminated <span class="op">=</span> env.step(player.action)</span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># step3: agent: update (save + learn) </span></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>    player.save_experience() </span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>    player.learn()</span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># step4: prepare next iterations </span></span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>    player.state <span class="op">=</span> player.next_state</span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> env.terminated:</span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>        player.state <span class="op">=</span> env.reset()</span>
+<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>action = 2  state = [0 0] -&gt; [1 0]  reward = -1 termiated = False
+action = 2  state = [1 0] -&gt; [2 0]  reward = -1 termiated = False
+action = 1  state = [2 0] -&gt; [ 2 -1]    reward = -10    termiated = True</code></pre>
+</div>
+</div>
+<div id="9c50c70e-c9fb-4cc1-9835-e75887f6ea19" class="cell" data-execution_count="44">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> [] </span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>playtimes <span class="op">=</span> []</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> e <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,<span class="dv">1000</span>):</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>    player.state <span class="op">=</span> env.reset()</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>    score <span class="op">=</span> <span class="dv">0</span> </span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">#---#</span></span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> playtime <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>,<span class="dv">50</span>):</span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>        <span class="co"># step1 : agent --&gt; env </span></span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>        player.act()</span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>        <span class="co"># step2: agnet &lt;-- env </span></span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>        player.next_state, player.reward, player.terminated <span class="op">=</span> env.step(player.action)</span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>        <span class="co"># step3: agent: update (save + learn) </span></span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a>        player.save_experience() </span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>        player.learn()</span>
+<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a>        <span class="co"># step4: prepare next iterations </span></span>
+<span id="cb51-16"><a href="#cb51-16" aria-hidden="true" tabindex="-1"></a>        player.state <span class="op">=</span> player.next_state</span>
+<span id="cb51-17"><a href="#cb51-17" aria-hidden="true" tabindex="-1"></a>        score <span class="op">=</span> score <span class="op">+</span> player.reward</span>
+<span id="cb51-18"><a href="#cb51-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> env.terminated:</span>
+<span id="cb51-19"><a href="#cb51-19" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"---에피소드</span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">종료---"</span>)</span>
+<span id="cb51-20"><a href="#cb51-20" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span>
+<span id="cb51-21"><a href="#cb51-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">#---#</span></span>
+<span id="cb51-22"><a href="#cb51-22" aria-hidden="true" tabindex="-1"></a>    scores.append(score)</span>
+<span id="cb51-23"><a href="#cb51-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> scores[<span class="op">-</span><span class="dv">1</span>] <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb51-24"><a href="#cb51-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>action = 3  state = [0 0] -&gt; [-1  0]    reward = -10    termiated = True
+---에피소드1종료---
+action = 1  state = [0 0] -&gt; [ 0 -1]    reward = -10    termiated = True
+---에피소드2종료---
+action = 2  state = [0 0] -&gt; [1 0]  reward = -1 termiated = False
+action = 3  state = [1 0] -&gt; [0 0]  reward = -1 termiated = False
+action = 3  state = [0 0] -&gt; [-1  0]    reward = -10    termiated = True
+---에피소드3종료---
+action = 2  state = [0 0] -&gt; [1 0]  reward = -1 termiated = False
+action = 1  state = [1 0] -&gt; [ 1 -1]    reward = -10    termiated = True
+---에피소드4종료---
+action = 2  state = [0 0] -&gt; [1 0]  reward = -1 termiated = False
+action = 2  state = [1 0] -&gt; [2 0]  reward = -1 termiated = False
+action = 0  state = [2 0] -&gt; [2 1]  reward = -1 termiated = False
+action = 1  state = [2 1] -&gt; [2 0]  reward = -1 termiated = False
+action = 1  state = [2 0] -&gt; [ 2 -1]    reward = -10    termiated = True
+---에피소드5종료---
+action = 0  state = [0 0] -&gt; [0 1]  reward = -1 termiated = False
+action = 1  state = [0 1] -&gt; [0 0]  reward = -1 termiated = False
+action = 3  state = [0 0] -&gt; [-1  0]    reward = -10    termiated = True
+---에피소드6종료---
+action = 3  state = [0 0] -&gt; [-1  0]    reward = -10    termiated = True
+---에피소드7종료---
+action = 1  state = [0 0] -&gt; [ 0 -1]    reward = -10    termiated = True
+---에피소드8종료---
+action = 1  state = [0 0] -&gt; [ 0 -1]    reward = -10    termiated = True
+---에피소드9종료---
+action = 3  state = [0 0] -&gt; [-1  0]    reward = -10    termiated = True
+---에피소드10종료---
+action = 0  state = [0 0] -&gt; [0 1]  reward = -1 termiated = False
+action = 3  state = [0 1] -&gt; [-1  1]    reward = -10    termiated = True
+---에피소드11종료---
+action = 3  state = [0 0] -&gt; [-1  0]    reward = -10    termiated = True
+---에피소드12종료---
+action = 0  state = [0 0] -&gt; [0 1]  reward = -1 termiated = False
+action = 2  state = [0 1] -&gt; [1 1]  reward = -1 termiated = False
+action = 1  state = [1 1] -&gt; [1 0]  reward = -1 termiated = False
+action = 0  state = [1 0] -&gt; [1 1]  reward = -1 termiated = False
+action = 3  state = [1 1] -&gt; [0 1]  reward = -1 termiated = False
+action = 2  state = [0 1] -&gt; [1 1]  reward = -1 termiated = False
+action = 1  state = [1 1] -&gt; [1 0]  reward = -1 termiated = False
+action = 0  state = [1 0] -&gt; [1 1]  reward = -1 termiated = False
+action = 0  state = [1 1] -&gt; [1 2]  reward = -1 termiated = False
+action = 0  state = [1 2] -&gt; [1 3]  reward = -1 termiated = False
+action = 2  state = [1 3] -&gt; [2 3]  reward = -1 termiated = False
+action = 1  state = [2 3] -&gt; [2 2]  reward = -1 termiated = False
+action = 0  state = [2 2] -&gt; [2 3]  reward = -1 termiated = False
+action = 2  state = [2 3] -&gt; [3 3]  reward = 100    termiated = True
+---에피소드13종료---</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
