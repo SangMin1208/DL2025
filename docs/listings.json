@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/14-.강화학습(4x4GridWorld환경의이해).html",
       "/posts/13-2.강화학습(Bandit환경설계및풀이,4xGridWorld게임설명및구현.html",
       "/posts/13-1.강화학습(Bandit).html",
       "/posts/12-2.순환신경망(RNNcell,RNN,LSTM,A1-A3).html",
